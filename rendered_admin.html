@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Management - NDIS Healthcare</title>
+    <link rel="stylesheet" href="http://localhost/css/login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-bg: #6b46c1;
+            --sidebar-text: #f3f4f6;
+            --sidebar-hover: #7c3aed;
+            --sidebar-active: #a78bfa;
+            --main-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --accent: #674cbf;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--main-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--sidebar-hover);
+            background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-hover));
+        }
+
+        .sidebar-header h2 {
+            color: var(--sidebar-text);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 30px;
+        }
+
+        .nav-section-title {
+            padding: 0 20px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--sidebar-hover);
+            border-left-color: var(--sidebar-active);
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-active);
+            border-left-color: #ffffff;
+            color: #ffffff;
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .top-bar {
+            background: var(--card-bg);
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--main-bg);
+            color: var(--text-primary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .user-details h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-details p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: capitalize;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+            color: white;
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            margin-bottom: 30px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .dashboard-header p {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        /* Stats Cards */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+
+        .stat-icon {
+            font-size: 40px;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent), #7c4dff);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .stat-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 0;
+        }
+
+        /* Action Buttons */
+        .dashboard-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #5a3fa3;
+            transform: translateY(-1px);
+        }
+
+        .action-btn.secondary {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn.secondary:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 20px;
+            }
+
+            .dashboard-content {
+                padding: 20px;
+            }
+
+            .top-bar {
+                padding: 15px 20px;
+            }
+
+            .user-info {
+                gap: 10px;
+            }
+
+            .user-details h4 {
+                font-size: 14px;
+            }
+
+            .dashboard-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-header h1 {
+                font-size: 24px;
+            }
+
+            .stat-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+
+            .stat-number {
+                font-size: 24px;
+            }
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>NDIS Healthcare</h2>
+                <p>Management Portal</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                
+                <!-- Common Navigation -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="http://localhost/dashboard" class="nav-item ">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                </div>
+
+                <!-- Role-specific Navigation -->
+                                    <!-- Client navigation -->
+                    <div class="nav-section">
+                        <div class="nav-section-title">Jobs</div>
+                        <a href="#" class="nav-item">
+                            <i class="fas fa-plus-circle"></i>
+                            Post Jobs
+                        </a>
+                        <a href="#" class="nav-item">
+                            <i class="fas fa-list"></i>
+                            My Jobs
+                        </a>
+                        <a href="#" class="nav-item">
+                            <i class="fas fa-users"></i>
+                            Applications
+                        </a>
+                    </div>
+                
+                <!-- Profile Section -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                                        <a href="#" class="nav-item">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Mobile Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="user-menu" id="userMenuContainer" style="position: relative;">
+                    <div class="user-avatar" id="userAvatar" style="cursor: pointer;">
+                        U
+                    </div>
+                    <div class="user-dropdown" id="userDropdown" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e9ecef; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 200px; z-index: 1000;">
+                        <div style="padding: 12px 16px; border-bottom: 1px solid #f1f1f1;">
+                            <strong>User</strong><br>
+                            <small style="color: var(--text-secondary);">Client</small>
+                        </div>
+                        <a href="http://localhost/healthcare-profile" class="dropdown-item" style="display: block; padding: 10px 16px; color: #333; text-decoration: none;">Your profile</a>
+                        <a href="#" class="dropdown-item" style="display: block; padding: 10px 16px; color: #333; text-decoration: none;">Settings</a>
+                        <form method="POST" action="http://localhost/logout" style="margin:0;">
+                            <input type="hidden" name="_token" value="" autocomplete="off">                            <button type="submit" style="width:100%; text-align:left; padding: 10px 16px; border:none; background:none; cursor:pointer; color:#333;">Log out</button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="dashboard-content">
+    <div class="dashboard-header">
+        <h1>Registration Management</h1>
+        <p>Review and approve new user registrations</p>
+    </div>
+
+    <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center;">
+            <h3 style="color: #666; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase;">Total Pending</h3>
+            <div class="number" id="statPending" style="color: var(--accent); font-size: 32px; font-weight: 700;">0</div>
+        </div>
+        <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center;">
+            <h3 style="color: #666; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase;">Total Approved</h3>
+            <div class="number" id="statApproved" style="color: var(--accent); font-size: 32px; font-weight: 700;">0</div>
+        </div>
+        <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center;">
+            <h3 style="color: #666; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase;">Total Rejected</h3>
+            <div class="number" id="statRejected" style="color: var(--accent); font-size: 32px; font-weight: 700;">0</div>
+        </div>
+        <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center;">
+            <h3 style="color: #666; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase;">Total Registrations</h3>
+            <div class="number" id="statTotal" style="color: var(--accent); font-size: 32px; font-weight: 700;">0</div>
+        </div>
+    </div>
+
+    <div class="admin-nav" style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="nav-btn active" onclick="switchTab('all')" style="padding: 10px 16px; background: white; border: 2px solid var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s ease;">All Registrations</button>
+        <button class="nav-btn" onclick="switchTab('clients')" style="padding: 10px 16px; background: white; border: 2px solid var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s ease;">Clients</button>
+        <button class="nav-btn" onclick="switchTab('healthcare')" style="padding: 10px 16px; background: white; border: 2px solid var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s ease;">Healthcare Workers</button>
+    </div>
+
+    <div class="search-filter" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <input type="text" id="searchInput" placeholder="Search by name, email..." style="padding: 10px 12px; border: 1px solid #e6e6ee; border-radius: 8px; font-size: 14px; font-family: inherit;">
+        <select id="statusFilter" style="padding: 10px 12px; border: 1px solid #e6e6ee; border-radius: 8px; font-size: 14px; font-family: inherit;">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+        </select>
+        <button onclick="filterData()" style="padding: 10px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">Filter</button>
+    </div>
+
+    <div class="table-container" style="background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); overflow-x: auto;">
+        <table id="registrationTable" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead style="background: #f9f9fc; border-bottom: 2px solid #e6e6ee;">
+                <tr>
+                    <th style="padding: 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase;">ID</th>
+                    <th style="padding: 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase;">Name</th>
+                    <th style="padding: 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase;">Type</th>
+                    <th style="padding: 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase;">Email</th>
+                    <th style="padding: 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase;">Phone</th>
+                    <th style="padding: 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase;">Status</th>
+                    <th style="padding: 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase;">Registered</th>
+                    <th style="padding: 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody" style="color: #333;">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); animation: fadeIn 0.3s ease;">
+    <div class="modal-content" style="background-color: white; margin: 5% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); animation: slideIn 0.3s ease;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #e6e6ee;">
+            <h2 style="margin: 0; color: var(--accent);">Registration Details</h2>
+            <button class="close-btn" onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody" style="color: #333;">
+        </div>
+        <div class="modal-footer" style="display: flex; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e6e6ee; justify-content: flex-end;">
+            <button class="modal-btn modal-btn-approve" onclick="approveRegistration()" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s ease; background: #7a5cd8; color: white;">Approve</button>
+            <button class="modal-btn modal-btn-reject" onclick="rejectRegistration()" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s ease; background: #a77ae8; color: white;">Reject</button>
+            <button class="modal-btn modal-btn-cancel" onclick="closeModal()" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s ease; background: #6c757d; color: white;">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nav-btn.active {
+        background: var(--accent) !important;
+        color: white !important;
+    }
+
+    .nav-btn:hover {
+        background: var(--accent) !important;
+        color: white !important;
+    }
+
+    tbody tr:hover {
+        background: #f9f9fc;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-approved {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-small {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view {
+        background: #674cbf;
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #5639a8;
+    }
+
+    .btn-approve {
+        background: #7a5cd8;
+        color: white;
+    }
+
+    .btn-approve:hover {
+        background: #674cbf;
+    }
+
+    .btn-reject {
+        background: #a77ae8;
+        color: white;
+    }
+
+    .btn-reject:hover {
+        background: #7a5cd8;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 16px;
+    }
+
+    .detail-row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 15px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f0f0f5;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .detail-value {
+        color: #555;
+    }
+
+    .modal-btn-approve:hover {
+        background: #674cbf !important;
+    }
+
+    .modal-btn-reject:hover {
+        background: #7a5cd8 !important;
+    }
+
+    .modal-btn-cancel:hover {
+        background: #5a6268 !important;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-nav {
+            flex-direction: column;
+        }
+
+        .nav-btn {
+            width: 100%;
+        }
+
+        table {
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 12px 8px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .modal-content {
+            width: 95%;
+        }
+
+        .detail-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    const registrations = [{"id":8,"name":"Kim Ramirez","type":"Healthcare Worker","email":"ramirezkyl@gmail.com","phone":"09168414946","status":"approved","registered":"2026-03-07","profession":"nurse","specialization":"General","licenseNumber":"11111111","experience":5,"facility":"Test Clinic","facilityAddress":"St. Paul st. Lakeview Subd. Halang, Calamba City","city":"Calamba City","state":"Laguna","credentials":"Test"},{"id":9,"name":"Kim Client","type":"Client","email":"ramirezkimyves@gmail.com","phone":"09168414946","status":"pending","registered":"2026-03-11","dob":"N\/A","address":"N\/A","city":"N\/A","state":"N\/A","zipcode":"N\/A","country":"N\/A"}];
+
+    let currentFilter = 'all';
+    let selectedRegistration = null;
+
+    function updateStats() {
+        const pending = registrations.filter(r => r.status === 'pending').length;
+        const approved = registrations.filter(r => r.status === 'approved').length;
+        const rejected = registrations.filter(r => r.status === 'rejected').length;
+        const total = registrations.length;
+
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statApproved').textContent = approved;
+        document.getElementById('statRejected').textContent = rejected;
+        document.getElementById('statTotal').textContent = total;
+    }
+
+    function renderTable(data) {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="8" class="no-data">No registrations found</td></tr>';
+            return;
+        }
+
+        data.forEach(reg => {
+            const row = document.createElement('tr');
+            const statusClass = `status-${reg.status}`;
+            row.innerHTML = `
+                <td>#${reg.id}</td>
+                <td>${reg.name}</td>
+                <td>${reg.type}</td>
+                <td>${reg.email}</td>
+                <td>${reg.phone}</td>
+                <td><span class="status-badge ${statusClass}">${reg.status}</span></td>
+                <td>${reg.registered}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-small btn-view" onclick="viewDetails(${reg.id})">View</button>
+                        ${reg.status === 'pending' ? `
+                            <button class="btn-small btn-approve" onclick="approveDirectly(${reg.id})">Approve</button>
+                            <button class="btn-small btn-reject" onclick="rejectDirectly(${reg.id})">Reject</button>
+                        ` : ''}
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function filterData() {
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+
+        let filtered = registrations;
+
+        if (currentFilter === 'clients') {
+            filtered = filtered.filter(r => r.type === 'Client');
+        } else if (currentFilter === 'healthcare') {
+            filtered = filtered.filter(r => r.type === 'Healthcare Worker');
+        }
+
+        if (searchInput) {
+            filtered = filtered.filter(r =>
+                r.name.toLowerCase().includes(searchInput) ||
+                r.email.toLowerCase().includes(searchInput)
+            );
+        }
+
+        if (statusFilter) {
+            filtered = filtered.filter(r => r.status === statusFilter);
+        }
+
+        renderTable(filtered);
+    }
+
+    function switchTab(tab) {
+        currentFilter = tab;
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        filterData();
+    }
+
+    function viewDetails(id) {
+        selectedRegistration = registrations.find(r => r.id === id);
+        const modal = document.getElementById('detailModal');
+        const modalBody = document.getElementById('modalBody');
+
+        let html = '';
+
+        if (selectedRegistration.type === 'Client') {
+            html = `
+                <div class="detail-row">
+                    <div class="detail-label">Full Name</div>
+                    <div class="detail-value">${selectedRegistration.name}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">${selectedRegistration.email}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phone</div>
+                    <div class="detail-value">${selectedRegistration.phone}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Date of Birth</div>
+                    <div class="detail-value">${selectedRegistration.dob}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Address</div>
+                    <div class="detail-value">${selectedRegistration.address}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">City</div>
+                    <div class="detail-value">${selectedRegistration.city}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">State</div>
+                    <div class="detail-value">${selectedRegistration.state}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Zip Code</div>
+                    <div class="detail-value">${selectedRegistration.zipcode}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value"><span class="status-badge status-${selectedRegistration.status}">${selectedRegistration.status}</span></div>
+                </div>
+            `;
+        } else {
+            html = `
+                <div class="detail-row">
+                    <div class="detail-label">Full Name</div>
+                    <div class="detail-value">${selectedRegistration.name}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">${selectedRegistration.email}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phone</div>
+                    <div class="detail-value">${selectedRegistration.phone}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Profession</div>
+                    <div class="detail-value">${selectedRegistration.profession}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Specialization</div>
+                    <div class="detail-value">${selectedRegistration.specialization}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">License Number</div>
+                    <div class="detail-value">${selectedRegistration.licenseNumber}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Years of Experience</div>
+                    <div class="detail-value">${selectedRegistration.experience}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Facility</div>
+                    <div class="detail-value">${selectedRegistration.facility}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Facility Address</div>
+                    <div class="detail-value">${selectedRegistration.facilityAddress}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">City</div>
+                    <div class="detail-value">${selectedRegistration.city}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">State</div>
+                    <div class="detail-value">${selectedRegistration.state}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Credentials</div>
+                    <div class="detail-value">${selectedRegistration.credentials}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value"><span class="status-badge status-${selectedRegistration.status}">${selectedRegistration.status}</span></div>
+                </div>
+            `;
+        }
+
+        modalBody.innerHTML = html;
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('detailModal').style.display = 'none';
+        selectedRegistration = null;
+    }
+
+    function approveRegistration() {
+        if (selectedRegistration) {
+            fetch(`/admin-registrations/${selectedRegistration.id}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    selectedRegistration.status = 'approved';
+                    alert(`${selectedRegistration.name} has been approved!`);
+                    closeModal();
+                    filterData();
+                    updateStats();
+                } else {
+                    alert('Error approving user: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error approving user: ' + error.message);
+            });
+        }
+    }
+
+    function rejectRegistration() {
+        if (selectedRegistration) {
+            fetch(`/admin-registrations/${selectedRegistration.id}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    selectedRegistration.status = 'rejected';
+                    alert(`${selectedRegistration.name} has been rejected!`);
+                    closeModal();
+                    filterData();
+                    updateStats();
+                } else {
+                    alert('Error rejecting user: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error rejecting user: ' + error.message);
+            });
+        }
+    }
+
+    function approveDirectly(id) {
+        fetch(`/admin-registrations/${id}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const reg = registrations.find(r => r.id === id);
+                reg.status = 'approved';
+                filterData();
+                updateStats();
+                alert(`${reg.name} has been approved!`);
+            } else {
+                alert('Error approving user: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error approving user: ' + error.message);
+        });
+    }
+
+    function rejectDirectly(id) {
+        fetch(`/admin-registrations/${id}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const reg = registrations.find(r => r.id === id);
+                reg.status = 'rejected';
+                filterData();
+                updateStats();
+                alert(`${reg.name} has been rejected!`);
+            } else {
+                alert('Error rejecting user: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error rejecting user: ' + error.message);
+        });
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('detailModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Initialize
+    updateStats();
+    renderTable(registrations);
+</script>
+        </main>
+    </div>
+
+    <script>
+        // Mobile sidebar toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.getElementById('mainContent');
+
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('mobile-open');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        // Close sidebar on window resize if desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+            }
+        });
+
+        // Highlight active navigation item
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item');
+
+            navItems.forEach(item => {
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                }
+            });
+
+            // user dropdown
+            const avatar = document.getElementById('userAvatar');
+            const dropdown = document.getElementById('userDropdown');
+
+            if (avatar && dropdown) {
+                avatar.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                });
+
+                // close when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!avatar.contains(event.target) && !dropdown.contains(event.target)) {
+                        dropdown.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
