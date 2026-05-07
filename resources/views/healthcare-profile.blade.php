@@ -10,6 +10,86 @@
         $profileSkillsOld = [''];
     }
 @endphp
+<style>
+    .ndis-requirements-panel {
+        background: #f8fafc;
+        border: 1px solid #eef2f7;
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
+    }
+
+    .ndis-requirements-header {
+        margin: 0 0 22px 0;
+        color: #0f2742;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .ndis-requirements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .ndis-requirement-card {
+        position: relative;
+        display: grid;
+        gap: 16px;
+        overflow: hidden;
+        min-height: 142px;
+        padding: 24px 28px 22px 24px;
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+    }
+
+    .ndis-requirement-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 10px;
+        height: 100%;
+        background: var(--ndis-accent, #06344d);
+    }
+
+    .ndis-requirement-title {
+        margin: 0;
+        padding-right: 12px;
+        color: #0f2742;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.35;
+    }
+
+    .ndis-requirement-input {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1px solid #dce3ec;
+        border-radius: 12px;
+        background: #f8fafc;
+        color: #111827;
+        font-size: 13px;
+    }
+
+    .ndis-requirement-input:focus {
+        outline: none;
+        border-color: #6b46c1;
+        box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.14);
+        background: #ffffff;
+    }
+
+    @media (max-width: 640px) {
+        .ndis-requirements-panel {
+            padding: 22px;
+        }
+
+        .ndis-requirements-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 <div class="dashboard-content">
     <div class="dashboard-header">
         <h1>My Profile</h1>
@@ -235,22 +315,24 @@
                     </div>
                 </div>
 
-                <div style="background: #ffffff; border-radius: 24px; padding: 28px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);">
-                    <h4 style="margin: 0 0 18px 0; color: #111827; font-size: 18px;">NDIS Requirements</h4>
+                <div class="ndis-requirements-panel">
+                    <h4 class="ndis-requirements-header">NDIS Requirements</h4>
                     @if($ndisRequirements->isEmpty())
                         <div style="padding: 18px; border: 1px dashed #d1d5db; border-radius: 16px; color: #6b7280; background: #f9fafb;">
                             No NDIS requirements are currently configured.
                         </div>
                     @else
-                        <div style="display: grid; gap: 14px;">
+                        <div class="ndis-requirements-grid">
                             @foreach($ndisRequirements as $requirement)
                                 @php
                                     $completedRequirement = $completedRequirements->get($requirement->id);
                                     $documentValue = old('ndis_requirements_completed.' . $requirement->id . '.document_link', optional($completedRequirement)->document_link);
+                                    $accentColors = ['#06344d', '#8b1db1', '#4c1dce', '#f59e0b'];
+                                    $accentColor = $accentColors[$loop->index % count($accentColors)];
                                 @endphp
-                                <label style="display: grid; gap: 8px; font-weight: 600; color: #111827;">
-                                    {{ $requirement->requirements }}
-                                    <input type="url" name="ndis_requirements_completed[{{ $requirement->id }}][document_link]" value="{{ $documentValue }}" placeholder="Paste Google Drive or Dropbox link when completed" style="width: 100%; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 14px; background: #f8fafc; color: #111827;">
+                                <label class="ndis-requirement-card" style="--ndis-accent: {{ $accentColor }};">
+                                    <span class="ndis-requirement-title">{{ $requirement->requirements }}</span>
+                                    <input class="ndis-requirement-input" type="url" name="ndis_requirements_completed[{{ $requirement->id }}][document_link]" value="{{ $documentValue }}" placeholder="Paste Google Drive or Dropbox link when completed">
                                 </label>
                             @endforeach
                         </div>

@@ -3,13 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Carehub — Login</title>
+    <title>Our Care - Login</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
 </head>
 <body>
     <main class="login-main">
         <div class="card">
-            <h1>Sign in to Carehub</h1>
+            <h1>Sign in to Our Care</h1>
             @if(session('status'))
                 <div style="color:green;font-size:14px;margin-bottom:10px;">
                     {{ session('status') }}

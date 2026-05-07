@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carehub – Care Workers Marketplace</title>
+    <title>Our Care - Care Workers Marketplace</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <style>
         :root {
             --brand-purple: #6a4bcf;
@@ -48,7 +49,7 @@
         }
 
         .logo img {
-            height: 44px;
+            height: 72px;
             width: auto;
         }
 
@@ -530,6 +531,10 @@
                 gap: 14px;
             }
 
+            .logo img {
+                height: 58px;
+            }
+
             .nav-links {
                 order: 3;
                 width: 100%;
@@ -568,6 +573,10 @@
         }
 
         @media (max-width: 480px) {
+            .logo img {
+                height: 52px;
+            }
+
             .nav-links {
                 display: none;
             }
@@ -607,11 +616,11 @@
 <body>
     <nav>
         <div class="logo">
-            <a href="{{ url('/') }}"><img src="{{ asset('logo2.png') }}" alt="Carehub" /></a>
+            <a href="{{ url('/') }}"><img src="{{ asset('logo2.png') }}" alt="Our Care" /></a>
         </div>
         <div class="nav-links">
             <a href="#how">How it works</a>
-            <a href="#why">Why Carehub?</a>
+            <a href="#why">Why Our Care?</a>
         </div>
         <div class="nav-actions">
             <a href="{{ url('/login') }}" class="btn btn-secondary">Login</a>

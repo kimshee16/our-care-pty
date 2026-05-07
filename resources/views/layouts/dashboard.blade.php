@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('page-title', 'Dashboard') - NDIS Healthcare</title>
+    <title>@yield('page-title', 'Dashboard') - Our Care</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -62,6 +63,12 @@
             overflow: hidden;
         }
 
+        .sidebar.collapsed .sidebar-header {
+            padding: 14px 10px;
+            display: flex;
+            justify-content: center;
+        }
+
         .sidebar.collapsed .sidebar-header h2,
         .sidebar.collapsed .sidebar-header p,
         .sidebar.collapsed .nav-section-title {
@@ -73,6 +80,8 @@
         }
 
         .sidebar.collapsed .nav-item {
+            display: flex;
+            align-items: center;
             font-size: 0;
             padding: 12px 0;
             justify-content: center;
@@ -83,10 +92,6 @@
             font-size: 18px;
         }
 
-        .sidebar.collapsed .nav-item::after {
-            content: '';
-        }
-
         .main-content.collapsed {
             margin-left: 80px;
         }
@@ -95,6 +100,18 @@
             padding: 20px;
             border-bottom: 1px solid var(--sidebar-hover);
             background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-hover));
+        }
+
+        .sidebar-logo {
+            width: 200px;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-logo {
+            width: 54px;
         }
 
         .sidebar-header h2 {
@@ -164,6 +181,11 @@
             box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15);
         }
 
+        .sidebar.collapsed .nav-item.active::after {
+            display: none;
+            content: none;
+        }
+
         .nav-item i {
             margin-right: 12px;
             width: 20px;
@@ -194,12 +216,14 @@
         .menu-toggle {
             background: none;
             border: none;
-            font-size: 20px;
             color: var(--text-secondary);
             cursor: pointer;
             padding: 8px;
             border-radius: 4px;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .menu-toggle:hover {
@@ -207,10 +231,34 @@
             color: var(--text-primary);
         }
 
+        .sidebar-toggle-icon {
+            width: 28px;
+            height: 28px;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .sidebar-toggle-icon .toggle-arrow {
+            transition: transform 0.2s ease;
+            transform-origin: center;
+        }
+
+        .sidebar.collapsed ~ .main-content .sidebar-toggle-icon .toggle-arrow {
+            transform: rotate(180deg);
+        }
+
         .user-info {
             display: flex;
             align-items: center;
             gap: 15px;
+        }
+
+        .user-menu {
+            position: relative;
+            font-family: inherit;
         }
 
         .user-avatar {
@@ -224,6 +272,66 @@
             color: white;
             font-weight: 600;
             font-size: 16px;
+            cursor: pointer;
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            width: 200px;
+            z-index: 1000;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-family: inherit;
+            color: var(--text-primary);
+        }
+
+        .user-dropdown-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .user-dropdown-name {
+            display: block;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .user-dropdown-role {
+            display: block;
+            margin-top: 2px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.35;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: var(--text-primary);
+            text-align: left;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            color: var(--accent);
         }
 
         .user-details h4 {
@@ -460,7 +568,7 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <img src="{{ asset('logo3.png') }}" alt="NDIS Healthcare Logo" style="width: 200px; margin-right: 10px;">
+                <img src="{{ asset('logo3.png') }}" alt="Our Care Logo" class="sidebar-logo">
             </div>
 
             <nav class="sidebar-nav">
@@ -558,34 +666,38 @@
         <main class="main-content" id="mainContent">
             <!-- Top Bar -->
             <header class="top-bar">
-                <button class="menu-toggle" id="menuToggle">
-                    <i class="fas fa-bars"></i>
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Collapse sidebar" title="Collapse sidebar">
+                    <svg class="sidebar-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+                        <path d="M15 5v14"></path>
+                        <path class="toggle-arrow" d="M10 9l-3 3 3 3"></path>
+                    </svg>
                 </button>
 
-                <div class="user-menu" id="userMenuContainer" style="position: relative;">
+                <div class="user-menu" id="userMenuContainer">
                     @php
                         $sessionUser = session('user', []);
                         $displayName = $sessionUser['fullname'] ?? $sessionUser['email'] ?? 'User';
                         $accountTypeLabel = ucfirst(str_replace('_', ' ', $sessionUser['accounttype'] ?? '')) ?: 'Unknown';
                     @endphp
 
-                    <div class="user-avatar" id="userAvatar" style="cursor: pointer;">
+                    <div class="user-avatar" id="userAvatar">
                         {{ strtoupper(substr($displayName, 0, 1)) }}
                     </div>
-                    <div class="user-dropdown" id="userDropdown" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e9ecef; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 200px; z-index: 1000;">
-                        <div style="padding: 12px 16px; border-bottom: 1px solid #f1f1f1;">
-                            <strong>{{ $displayName }}</strong><br>
-                            <small style="color: var(--text-secondary);">{{ $accountTypeLabel }}</small>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <span class="user-dropdown-name">{{ $displayName }}</span>
+                            <span class="user-dropdown-role">{{ $accountTypeLabel }}</span>
                         </div>
                         @if($accountType === 'healthcare_worker')
-                            <a href="{{ url('/healthcare-profile') }}" class="dropdown-item" style="display: block; padding: 10px 16px; color: #333; text-decoration: none;">Your profile</a>
+                            <a href="{{ url('/healthcare-profile') }}" class="dropdown-item">Your profile</a>
                         @else
-                            <a href="{{ url('/profile') }}" class="dropdown-item" style="display: block; padding: 10px 16px; color: #333; text-decoration: none;">Profile</a>
+                            <a href="{{ url('/profile') }}" class="dropdown-item">Profile</a>
                         @endif
-                        <a href="{{ $accountType === 'admin' ? url('/admin/settings') : url('/settings') }}" class="dropdown-item" style="display: block; padding: 10px 16px; color: #333; text-decoration: none;">Settings</a>
+                        <a href="{{ $accountType === 'admin' ? url('/admin/settings') : url('/settings') }}" class="dropdown-item">Settings</a>
                         <form method="POST" action="{{ url('/logout') }}" style="margin:0;">
                             @csrf
-                            <button type="submit" style="width:100%; text-align:left; padding: 10px 16px; border:none; background:none; cursor:pointer; color:#333;">Log out</button>
+                            <button type="submit" class="dropdown-item">Log out</button>
                         </form>
                     </div>
                 </div>
@@ -615,16 +727,14 @@
         const mainContent = document.getElementById('mainContent');
 
         menuToggle.addEventListener('click', function() {
-            const icon = menuToggle.querySelector('i');
-
             if (window.innerWidth <= 768) {
                 sidebar.classList.toggle('mobile-open');
                 sidebarOverlay.classList.toggle('active');
             } else {
                 const isCollapsed = sidebar.classList.toggle('collapsed');
                 mainContent.classList.toggle('collapsed');
-                icon.classList.toggle('fa-bars', !isCollapsed);
-                icon.classList.toggle('fa-chevron-left', isCollapsed);
+                menuToggle.setAttribute('aria-label', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
+                menuToggle.setAttribute('title', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
             }
         });
 
