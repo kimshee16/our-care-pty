@@ -1154,7 +1154,8 @@
 </style>
 
 <script>
-const routePrefix = '{{ $routePrefix }}';
+const routePrefix = @json($routePrefix);
+const csrfToken = @json(csrf_token());
 function openCreateModal() {
     document.getElementById('createInterviewModal').style.display = 'block';
 }
@@ -1197,89 +1198,128 @@ function openNotesModal(applicationId) {
         return;
     }
 
-    popup.document.open();
-    popup.document.write(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Interview Notes</title>
-            <style>
-                body {
-                    margin: 0;
-                    padding: 20px;
-                    font-family: Arial, sans-serif;
-                    background: #f8fafc;
-                    color: #1f2937;
-                }
-                h1 {
-                    margin: 0 0 16px;
-                    font-size: 20px;
-                }
-                label {
-                    display: block;
-                    margin-bottom: 8px;
-                    font-size: 14px;
-                    font-weight: 600;
-                }
-                textarea {
-                    width: 100%;
-                    min-height: 260px;
-                    box-sizing: border-box;
-                    padding: 12px;
-                    border: 1px solid #cbd5e1;
-                    border-radius: 8px;
-                    font: inherit;
-                    resize: vertical;
-                }
-                textarea:focus {
-                    outline: none;
-                    border-color: #4f46e5;
-                    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
-                }
-                .actions {
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 10px;
-                    margin-top: 16px;
-                }
-                button {
-                    border: none;
-                    border-radius: 8px;
-                    padding: 10px 16px;
-                    font: inherit;
-                    font-weight: 600;
-                    cursor: pointer;
-                }
-                .btn-cancel {
-                    background: #e2e8f0;
-                    color: #334155;
-                }
-                .btn-save {
-                    background: #4f46e5;
-                    color: #fff;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>Add Interview Notes</h1>
-            <form method="POST" action="/{{ $routePrefix }}/interviews/addNotes">
-                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                <input type="hidden" id="popupApplicationId" name="application_id">
-                <label for="popupInterviewNotes">Interview Notes</label>
-                <textarea id="popupInterviewNotes" name="interview_notes" placeholder="Add feedback, observations, or next steps from the interview..." required></textarea>
-                <div class="actions">
-                    <button type="button" class="btn-cancel" onclick="window.close()">Cancel</button>
-                    <button type="submit" class="btn-save">Save Notes</button>
-                </div>
-            </form>
-        </body>
-        </html>
-    `);
-    popup.document.close();
-    popup.document.getElementById('popupApplicationId').value = applicationId;
+    const doc = popup.document;
+    doc.open();
+    doc.close();
+    doc.title = 'Interview Notes';
+    doc.documentElement.lang = 'en';
+
+    const metaCharset = doc.createElement('meta');
+    metaCharset.setAttribute('charset', 'UTF-8');
+
+    const metaViewport = doc.createElement('meta');
+    metaViewport.name = 'viewport';
+    metaViewport.content = 'width=device-width, initial-scale=1.0';
+
+    const style = doc.createElement('style');
+    style.textContent = `
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f8fafc;
+            color: #1f2937;
+        }
+        h1 {
+            margin: 0 0 16px;
+            font-size: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        textarea {
+            width: 100%;
+            min-height: 260px;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font: inherit;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #334155;
+        }
+        .btn-save {
+            background: #4f46e5;
+            color: #fff;
+        }
+    `;
+
+    doc.head.replaceChildren(metaCharset, metaViewport, style);
+
+    const heading = doc.createElement('h1');
+    heading.textContent = 'Add Interview Notes';
+
+    const form = doc.createElement('form');
+    form.method = 'POST';
+    form.action = '/' + routePrefix + '/interviews/addNotes';
+
+    const tokenInput = doc.createElement('input');
+    tokenInput.type = 'hidden';
+    tokenInput.name = '_token';
+    tokenInput.value = csrfToken;
+
+    const applicationInput = doc.createElement('input');
+    applicationInput.type = 'hidden';
+    applicationInput.name = 'application_id';
+    applicationInput.value = applicationId;
+
+    const label = doc.createElement('label');
+    label.htmlFor = 'popupInterviewNotes';
+    label.textContent = 'Interview Notes';
+
+    const textarea = doc.createElement('textarea');
+    textarea.id = 'popupInterviewNotes';
+    textarea.name = 'interview_notes';
+    textarea.placeholder = 'Add feedback, observations, or next steps from the interview...';
+    textarea.required = true;
+
+    const actions = doc.createElement('div');
+    actions.className = 'actions';
+
+    const cancelButton = doc.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.className = 'btn-cancel';
+    cancelButton.textContent = 'Cancel';
+    cancelButton.addEventListener('click', function() {
+        popup.close();
+    });
+
+    const saveButton = doc.createElement('button');
+    saveButton.type = 'submit';
+    saveButton.className = 'btn-save';
+    saveButton.textContent = 'Save Notes';
+
+    actions.append(cancelButton, saveButton);
+    form.append(tokenInput, applicationInput, label, textarea, actions);
+    doc.body.replaceChildren(heading, form);
+
     popup.focus();
+    textarea.focus();
 }
 
 function closeNotesModal() {
