@@ -116,7 +116,7 @@
             <div style="display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: center;">
                 <div style="width: 132px; height: 132px; border-radius: 50%; background: #6b46c1; display: grid; place-items: center; color: white; font-size: 52px; font-weight: 700; overflow: hidden;">
                     @if(optional($worker)->profile_photo)
-                        <img src="{{ asset('storage/' . $worker->profile_photo) }}" alt="{{ $user->fullname }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{{ route('profile-photos.show', ['filename' => basename($worker->profile_photo)]) }}" alt="{{ $user->fullname }}" style="width: 100%; height: 100%; object-fit: cover;">
                     @else
                         {{ strtoupper(substr($user->fullname, 0, 1)) }}
                     @endif
@@ -391,7 +391,7 @@
             <div style="display: grid; place-items: center; gap: 14px;">
                 <div style="width: 112px; height: 112px; border-radius: 50%; background: #6b46c1; display: grid; place-items: center; color: white; font-size: 44px; font-weight: 700; overflow: hidden;">
                     @if(optional($worker)->profile_photo)
-                        <img src="{{ asset('storage/' . $worker->profile_photo) }}" alt="{{ $user->fullname }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{{ route('profile-photos.show', ['filename' => basename($worker->profile_photo)]) }}" alt="{{ $user->fullname }}" style="width: 100%; height: 100%; object-fit: cover;">
                     @else
                         {{ strtoupper(substr($user->fullname, 0, 1)) }}
                     @endif

@@ -21,6 +21,17 @@ use App\Models\User;
 
 class HealthcareController extends Controller
 {
+    public function profilePhoto(string $filename)
+    {
+        abort_unless(preg_match('/\A[A-Za-z0-9._-]+\z/', $filename) === 1, 404);
+
+        $path = storage_path('app/public/profile-photos/' . $filename);
+
+        abort_unless(is_file($path), 404);
+
+        return response()->file($path);
+    }
+
     public function showRegistrationForm()
     {
         return view('healthcare-register');

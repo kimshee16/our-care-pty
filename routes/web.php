@@ -12,6 +12,9 @@ Route::get('/logout', [App\Http\Controllers\AuthController::class, 'logout']);
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout']);
 Route::view('/signup-option', 'signup-option');
 Route::view('/settings', 'settings')->middleware('auth');
+Route::get('/profile-photos/{filename}', [App\Http\Controllers\HealthcareController::class, 'profilePhoto'])
+    ->where('filename', '[A-Za-z0-9._-]+')
+    ->name('profile-photos.show');
 Route::get('/client-register', [App\Http\Controllers\ClientController::class, 'showRegistrationForm']);
 Route::post('/client-register', [App\Http\Controllers\ClientController::class, 'register']);
 Route::get('/dashboard', function () {
