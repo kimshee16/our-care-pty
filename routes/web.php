@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'index');
 
+// Local-only browser link for checking the configured mail transport.
+Route::get('/test-email', [App\Http\Controllers\HealthcareController::class, 'sendTestEmail'])
+    ->name('test-email');
+
 // static pages converted from standalone HTML
 // use AuthController to handle login form display and submission
 Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLoginForm'])->name('login');

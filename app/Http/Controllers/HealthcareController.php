@@ -37,6 +37,40 @@ class HealthcareController extends Controller
         return view('healthcare-register');
     }
 
+    /**
+     * Send a test email using the current mail configuration.
+     */
+    public function sendTestEmail(Request $request)
+    {
+        abort_unless(app()->environment('local'), 404);
+
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $recipientEmail = $validated['email'];
+
+        try {
+            Mail::send('emails.test-email', [
+                'recipientEmail' => $recipientEmail,
+                'sentAt' => now()->format('M d, Y h:i A'),
+                'appName' => config('app.name'),
+            ], function ($message) use ($recipientEmail) {
+                $message->to($recipientEmail)
+                    ->subject('Test Email from Our Care Pty Ltd');
+            });
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response(
+                'Test email could not be sent: ' . $exception->getMessage(),
+                500
+            );
+        }
+
+        return response('Test email sent successfully to ' . $recipientEmail . '.');
+    }
+
     public function register(Request $request)
     {
         $healthcareSkillOptions = config('healthcare_skills.options', []);
