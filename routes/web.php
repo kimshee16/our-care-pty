@@ -3,6 +3,23 @@
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'index');
+Route::view('/home-v2', 'home-v2')->name('home.v2');
+Route::view('/about-v2', 'about-v2')->name('about.v2');
+Route::view('/services-v2', 'services-v2')->name('services.v2');
+Route::view('/onboarding-v2', 'onboarding-v2')->name('onboarding.v2');
+Route::view('/intake-v2', 'intake-v2')->name('intake.v2');
+Route::view('/contact-v2', 'contact-v2')->name('contact.v2');
+Route::get('/services-v2/{service}', function (string $service) {
+    $services = config('ourcare_v2.services');
+
+    abort_unless(isset($services[$service]), 404);
+
+    return view('service-detail-v2', [
+        'slug' => $service,
+        'service' => $services[$service],
+        'services' => $services,
+    ]);
+})->name('services.detail.v2');
 
 // Local-only browser link for checking the configured mail transport.
 Route::get('/test-email', [App\Http\Controllers\HealthcareController::class, 'sendTestEmail'])
