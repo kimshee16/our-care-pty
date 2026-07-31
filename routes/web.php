@@ -2,24 +2,21 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'index');
-Route::view('/home-v2', 'home-v2')->name('home.v2');
-Route::view('/about-v2', 'about-v2')->name('about.v2');
-Route::view('/services-v2', 'services-v2')->name('services.v2');
-Route::view('/onboarding-v2', 'onboarding-v2')->name('onboarding.v2');
-Route::view('/intake-v2', 'intake-v2')->name('intake.v2');
-Route::view('/contact-v2', 'contact-v2')->name('contact.v2');
-Route::get('/services-v2/{service}', function (string $service) {
-    $services = config('ourcare_v2.services');
-
-    abort_unless(isset($services[$service]), 404);
-
-    return view('service-detail-v2', [
-        'slug' => $service,
-        'service' => $services[$service],
-        'services' => $services,
-    ]);
-})->name('services.detail.v2');
+Route::get('/', [App\Http\Controllers\CmsController::class, 'home']);
+Route::get('/home-v2', [App\Http\Controllers\CmsController::class, 'home'])->name('home.v2');
+Route::get('/about-v2', [App\Http\Controllers\CmsController::class, 'about'])->name('about.v2');
+Route::get('/services-v2', [App\Http\Controllers\CmsController::class, 'services'])->name('services.v2');
+Route::get('/onboarding-v2', [App\Http\Controllers\CmsController::class, 'onboarding'])->name('onboarding.v2');
+Route::get('/intake-v2', [App\Http\Controllers\CmsController::class, 'intake'])->name('intake.v2');
+Route::get('/contact-v2', [App\Http\Controllers\CmsController::class, 'contact'])->name('contact.v2');
+Route::get('/services-v2/{service}', [App\Http\Controllers\CmsController::class, 'serviceDetail'])->name('services.detail.v2');
+Route::get('/cms/home', [App\Http\Controllers\CmsController::class, 'home']);
+Route::get('/cms/about', [App\Http\Controllers\CmsController::class, 'about']);
+Route::get('/cms/services', [App\Http\Controllers\CmsController::class, 'services']);
+Route::get('/cms/onboarding', [App\Http\Controllers\CmsController::class, 'onboarding']);
+Route::get('/cms/intake', [App\Http\Controllers\CmsController::class, 'intake']);
+Route::get('/cms/contact', [App\Http\Controllers\CmsController::class, 'contact']);
+Route::get('/cms/services/{service}', [App\Http\Controllers\CmsController::class, 'serviceDetail']);
 
 // Local-only browser link for checking the configured mail transport.
 Route::get('/test-email', [App\Http\Controllers\HealthcareController::class, 'sendTestEmail'])
@@ -169,6 +166,24 @@ Route::post('/admin/endorsements', [App\Http\Controllers\ClientController::class
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
 
 Route::get('/admin/settings', [App\Http\Controllers\AdminController::class, 'settings'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
+
+Route::get('/admin/cms', [App\Http\Controllers\CmsController::class, 'index'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
+
+Route::post('/admin/cms/brand', [App\Http\Controllers\CmsController::class, 'updateBrand'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
+
+Route::post('/admin/cms/palette', [App\Http\Controllers\CmsController::class, 'updatePalette'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
+
+Route::post('/admin/cms/pages/{slug}', [App\Http\Controllers\CmsController::class, 'updatePage'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
+
+Route::post('/admin/cms/services/{slug}', [App\Http\Controllers\CmsController::class, 'updateService'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
+
+Route::post('/admin/cms/reset', [App\Http\Controllers\CmsController::class, 'reset'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
 
 Route::post('/admin/settings/ndis-requirements', [App\Http\Controllers\AdminController::class, 'storeRequirement'])

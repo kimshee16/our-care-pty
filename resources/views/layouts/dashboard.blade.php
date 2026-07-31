@@ -622,6 +622,10 @@
                             <i class="fas fa-award"></i>
                             Endorsements
                         </a>
+                        <a href="{{ url('/admin/cms') }}" class="nav-item {{ request()->is('admin/cms') || request()->is('admin/cms/*') ? 'active' : '' }}">
+                            <i class="fas fa-palette"></i>
+                            CMS
+                        </a>
                         <a href="{{ url('/admin/settings') }}" class="nav-item {{ request()->is('admin/settings') || request()->is('admin/settings/*') ? 'active' : '' }}">
                             <i class="fas fa-cog"></i>
                             Settings
