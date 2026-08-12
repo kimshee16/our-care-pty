@@ -7,157 +7,55 @@
 @section('title', $service['label'] . ' - Our Care')
 
 @section('styles')
-    .service-detail {
-        padding: 62px var(--pad) 96px;
-        background:
-            linear-gradient(180deg, rgba(231, 244, 248, 0.62), #ffffff 42%),
-            linear-gradient(90deg, rgba(127, 199, 177, 0.12), rgba(231, 119, 98, 0.07));
-    }
-
-    .service-detail__inner {
-        display: grid;
-        grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.18fr);
-        gap: 42px;
-        align-items: start;
-    }
-
-    .service-photo {
-        position: sticky;
-        top: 122px;
-        overflow: hidden;
-        min-height: 360px;
-        border-radius: 8px;
-        background: var(--brand-soft);
-        box-shadow: var(--shadow);
-    }
-
-    .service-photo img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .service-copy {
-        padding: 44px 46px;
-        border: 1px solid rgba(36, 124, 159, 0.18);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.94);
-        box-shadow: 0 16px 36px rgba(20, 60, 78, 0.08);
-    }
-
-    .service-copy h1 {
-        margin: 0 0 54px;
-        color: var(--brand);
-        text-align: center;
-        font-size: clamp(2rem, 4.2vw, 3.45rem);
-        line-height: 1.25;
-        letter-spacing: 0;
-    }
-
-    .service-copy h2 {
-        margin: 30px 0 18px;
-        color: #0e1a21;
-        font-size: 24px;
-        line-height: 1.3;
-    }
-
-    .service-copy p {
-        margin-bottom: 22px;
-        color: #24313a;
-        font-size: 18px;
-        line-height: 1.58;
-    }
-
-    .registration {
-        margin-bottom: 26px;
-        padding: 14px 16px;
-        border-left: 4px solid var(--brand);
-        color: #34444d;
-        background: var(--brand-soft);
-        font-size: 14px;
-        font-weight: 800;
-        line-height: 1.45;
-    }
-
-    .support-list {
-        display: grid;
-        gap: 18px;
-        margin: 0 0 30px;
-        padding: 0;
-        list-style: none;
-    }
-
-    .support-list li {
-        color: #24313a;
-        font-size: 17px;
-        line-height: 1.55;
-    }
-
-    .support-list strong {
-        color: #0d151a;
-    }
-
-    .detail-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 36px;
-    }
-
-    .detail-actions .button {
-        min-width: 210px;
-    }
-
-    @media (max-width: 980px) {
-        .service-detail__inner {
-            grid-template-columns: 1fr;
-        }
-
-        .service-photo {
-            position: static;
-        }
-
-        .service-copy h1 {
-            margin-bottom: 36px;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .service-detail {
-            padding-left: 20px;
-            padding-right: 20px;
-        }
-
-        .service-copy {
-            padding: 30px 22px;
-        }
-
-        .service-copy p,
-        .support-list li {
-            font-size: 16px;
-        }
-
-        .service-photo {
-            min-height: 250px;
-        }
-    }
+    .detail-hero { padding: clamp(58px, 8vw, 104px) var(--pad); background: linear-gradient(100deg, #e6badf 0%, #f6c7d7 52%, #ffd9c7 100%); }
+    .detail-hero__grid { display: grid; grid-template-columns: minmax(0,.9fr) minmax(320px,1.1fr); gap: clamp(28px,6vw,72px); align-items: center; }
+    .detail-hero h1 { margin: 0 0 16px; color: var(--ink); font-size: clamp(2.25rem, 4.6vw, 4rem); line-height: 1.06; }
+    .detail-hero p { max-width: 610px; color: #443454; font-size: 16px; }
+    .detail-image { overflow: hidden; min-height: 420px; border-radius: 8px; box-shadow: var(--shadow); }
+    .detail-image img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-layout { display: grid; grid-template-columns: minmax(260px, .36fr) minmax(0, .64fr); gap: 34px; align-items: start; }
+    .side-panel { position: sticky; top: 94px; padding: 26px; border-radius: 8px; background: #fff; box-shadow: var(--shadow); }
+    .side-panel h2 { margin: 0 0 12px; color: var(--ink); font-size: 22px; }
+    .side-panel p { font-size: 13px; }
+    .registration { margin: 0 0 18px; padding: 14px 16px; border-radius: 8px; color: var(--ink); background: #fff2f6; font-size: 13px; font-weight: 800; line-height: 1.45; }
+    .copy-panel { padding: clamp(26px, 4vw, 46px); border-radius: 8px; background: #fff; box-shadow: var(--shadow); }
+    .copy-panel h2 { margin: 30px 0 14px; color: var(--ink); font-size: 25px; line-height: 1.25; }
+    .copy-panel p { margin-bottom: 18px; color: #443454; font-size: 16px; line-height: 1.75; }
+    .support-list { display: grid; gap: 16px; margin: 0 0 30px; padding: 0; list-style: none; }
+    .support-list li { padding: 18px; border-radius: 8px; color: #443454; background: #fff8f2; font-size: 15px; line-height: 1.6; }
+    .support-list strong { color: var(--ink); }
+    .detail-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .related-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+    .related-grid a { padding: 16px; border-radius: 8px; color: var(--ink); background: #fff; box-shadow: 0 10px 22px rgba(45,18,75,.07); font-size: 13px; font-weight: 900; }
+    @media (max-width: 980px) { .detail-hero__grid, .detail-layout, .related-grid { grid-template-columns: 1fr; } .side-panel { position: static; } .detail-image { min-height: 300px; } }
 @endsection
 
 @section('content')
-    <section class="service-detail">
-        <div class="container service-detail__inner">
-            <div class="service-photo">
-                <img src="{{ asset($service['image']) }}" alt="{{ $service['label'] }}">
-            </div>
-
-            <article class="service-copy">
+    <section class="detail-hero">
+        <div class="container detail-hero__grid">
+            <div>
+                <p class="eyebrow">{{ $service['label'] }}</p>
                 <h1>{{ $service['title'] }}</h1>
+                <p>{{ $service['summary'] }}</p>
+                <a class="button" href="{{ url('/intake-v2') }}">Book a consultation</a>
+            </div>
+            <div class="detail-image"><img src="{{ asset($service['image']) }}" alt="{{ $service['label'] }}"></div>
+        </div>
+    </section>
 
+    <section class="section">
+        <div class="container detail-layout">
+            <aside class="side-panel">
+                <h2>Service pathway</h2>
+                <div class="registration">{{ $service['registration'] }}</div>
+                <p>Our team can help you understand fit, intake details, and the best next step for this support.</p>
+                <a class="button" href="{{ url('/contact-v2') }}">Ask about this service</a>
+            </aside>
+
+            <article class="copy-panel">
                 @if(!empty($service['heading']))
                     <h2>{{ $service['heading'] }}</h2>
                 @endif
-
-                <div class="registration">{{ $service['registration'] }}</div>
 
                 @foreach($service['intro'] as $paragraph)
                     <p>{{ $paragraph }}</p>
@@ -181,8 +79,15 @@
                 </ul>
 
                 <div class="detail-actions">
-                    <a class="button" href="{{ url('/signup-option') }}">Book a Consultation</a>
-                    <a class="button" href="{{ url('/services-v2') }}">View All Services</a>
+                    <a class="button" href="{{ url('/signup-option') }}">Book a consultation</a>
+                    <a class="button button--light" href="{{ url('/services-v2') }}">View all services</a>
+                </div>
+
+                <h2>Explore related services</h2>
+                <div class="related-grid">
+                    @foreach(array_slice($services, 0, 3, true) as $relatedSlug => $relatedService)
+                        <a href="{{ url('/services/' . $relatedSlug) }}">{{ $relatedService['label'] }}</a>
+                    @endforeach
                 </div>
             </article>
         </div>

@@ -2,14 +2,40 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [App\Http\Controllers\CmsController::class, 'home']);
-Route::get('/home-v2', [App\Http\Controllers\CmsController::class, 'home'])->name('home.v2');
-Route::get('/about-v2', [App\Http\Controllers\CmsController::class, 'about'])->name('about.v2');
-Route::get('/services-v2', [App\Http\Controllers\CmsController::class, 'services'])->name('services.v2');
-Route::get('/onboarding-v2', [App\Http\Controllers\CmsController::class, 'onboarding'])->name('onboarding.v2');
-Route::get('/intake-v2', [App\Http\Controllers\CmsController::class, 'intake'])->name('intake.v2');
-Route::get('/contact-v2', [App\Http\Controllers\CmsController::class, 'contact'])->name('contact.v2');
-Route::get('/services-v2/{service}', [App\Http\Controllers\CmsController::class, 'serviceDetail'])->name('services.detail.v2');
+Route::view('/', 'home-progress')->name('home.v2');
+Route::view('/home-v2', 'home-progress');
+Route::view('/about', 'about-progress')->name('about.v2');
+Route::view('/about-v2', 'about-progress');
+Route::view('/services', 'services-progress')->name('services.v2');
+Route::view('/services-v2', 'services-progress');
+Route::view('/onboarding', 'onboarding-progress')->name('onboarding.v2');
+Route::view('/onboarding-v2', 'onboarding-progress');
+Route::view('/intake', 'intake-progress')->name('intake.v2');
+Route::view('/intake-v2', 'intake-progress');
+Route::view('/contact', 'contact-progress')->name('contact.v2');
+Route::view('/contact-v2', 'contact-progress');
+Route::get('/services/{service}', function (string $service) {
+    $services = config('ourcare_v2.services');
+
+    abort_unless(isset($services[$service]), 404);
+
+    return view('service-detail-progress', [
+        'slug' => $service,
+        'service' => $services[$service],
+        'services' => $services,
+    ]);
+})->name('services.detail.v2');
+Route::get('/services-v2/{service}', function (string $service) {
+    $services = config('ourcare_v2.services');
+
+    abort_unless(isset($services[$service]), 404);
+
+    return view('service-detail-progress', [
+        'slug' => $service,
+        'service' => $services[$service],
+        'services' => $services,
+    ]);
+});
 Route::get('/cms/home', [App\Http\Controllers\CmsController::class, 'home']);
 Route::get('/cms/about', [App\Http\Controllers\CmsController::class, 'about']);
 Route::get('/cms/services', [App\Http\Controllers\CmsController::class, 'services']);

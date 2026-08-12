@@ -3,13 +3,16 @@
 namespace App\Support;
 
 use App\Models\CmsSetting;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+
 class CmsContent
 {
     public static function all(): array
     {
         $content = config('cms');
 
-        foreach (CmsSetting::all() as $setting) {
+        foreach (static::storedSettings() as $setting) {
             data_set($content, $setting->key, json_decode((string) $setting->value, true));
         }
 
@@ -59,5 +62,19 @@ class CmsContent
     public static function services(): array
     {
         return static::get('services', config('ourcare_v2.services', []));
+    }
+
+    private static function storedSettings(): iterable
+    {
+        try {
+            return CmsSetting::all();
+        } catch (Throwable $exception) {
+            Log::warning('CMS settings could not be loaded; falling back to config defaults.', [
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return [];
+        }
     }
 }

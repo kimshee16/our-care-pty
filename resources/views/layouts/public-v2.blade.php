@@ -7,19 +7,19 @@
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <style>
         :root {
-            --brand: #247c9f;
-            --brand-dark: #155d79;
-            --brand-soft: #e7f4f8;
-            --ink: #24313a;
-            --muted: #6d7a83;
-            --line: #e5edf1;
-            --soft: #f7fbfc;
+            --brand: #2d124b;
+            --brand-dark: #1f0d35;
+            --brand-soft: #fff2f6;
+            --ink: #2c1746;
+            --muted: #6f6278;
+            --line: rgba(45, 18, 75, 0.12);
+            --soft: #fff8f2;
             --mint: #7fc7b1;
-            --coral: #e77762;
-            --sun: #f3c969;
+            --coral: #ff7044;
+            --sun: #ffd36b;
             --pad: clamp(24px, 5vw, 72px);
             --content: 1180px;
-            --shadow: 0 18px 42px rgba(28, 54, 68, 0.12);
+            --shadow: 0 18px 42px rgba(45, 18, 75, 0.12);
         }
 
         * { box-sizing: border-box; }
@@ -28,7 +28,7 @@
         body {
             margin: 0;
             color: var(--ink);
-            background: #ffffff;
+            background: #fffaf7;
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
@@ -40,12 +40,11 @@
             align-items: center;
             justify-content: space-between;
             gap: 18px;
-            min-height: 42px;
-            padding: 8px var(--pad);
-            border-bottom: 1px solid var(--line);
-            background: #fbfdfe;
-            color: var(--muted);
-            font-size: 13px;
+            min-height: 28px;
+            padding: 5px var(--pad);
+            background: var(--brand);
+            color: rgba(255, 255, 255, 0.86);
+            font-size: 11px;
         }
 
         .topbar__group {
@@ -62,7 +61,8 @@
             white-space: nowrap;
         }
 
-        .icon { width: 18px; height: 18px; flex: 0 0 auto; }
+        .topbar a { color: #ffffff; font-weight: 800; }
+        .icon { width: 15px; height: 15px; flex: 0 0 auto; }
 
         .site-header {
             position: sticky;
@@ -72,10 +72,11 @@
             align-items: center;
             justify-content: space-between;
             gap: 24px;
-            min-height: 78px;
-            padding: 12px var(--pad);
+            min-height: 58px;
+            padding: 8px var(--pad);
             border-bottom: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.94);
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 10px 28px rgba(45, 18, 75, 0.06);
             backdrop-filter: blur(16px);
         }
 
@@ -87,28 +88,28 @@
         }
 
         .brand-link img {
-            width: 58px;
-            height: 58px;
+            width: 46px;
+            height: 46px;
             object-fit: contain;
         }
 
         .brand-wordmark { display: grid; gap: 2px; }
-        .brand-wordmark strong { color: var(--brand-dark); font-size: 17px; line-height: 1; }
-        .brand-wordmark span { color: var(--muted); font-size: 12px; }
+        .brand-wordmark strong { color: var(--brand); font-size: 17px; line-height: 1; }
+        .brand-wordmark span { color: var(--coral); font-size: 10px; font-weight: 900; text-transform: uppercase; }
 
         .nav-links {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 22px;
-            color: #495761;
-            font-size: 13px;
+            gap: 18px;
+            color: var(--ink);
+            font-size: 12px;
             font-weight: 700;
         }
 
         .nav-links a { padding: 8px 0; }
         .nav-links a:hover,
-        .nav-links a[aria-current="page"] { color: var(--brand); }
+        .nav-links a[aria-current="page"] { color: var(--coral); }
 
         .nav-item { position: relative; }
 
@@ -124,7 +125,7 @@
 
         .nav-trigger:hover,
         .nav-item:hover .nav-trigger,
-        .nav-item:focus-within .nav-trigger { color: var(--brand); }
+        .nav-item:focus-within .nav-trigger { color: var(--coral); }
 
         .submenu {
             position: absolute;
@@ -136,7 +137,7 @@
             border: 1px solid var(--line);
             border-radius: 8px;
             background: #ffffff;
-            box-shadow: 0 18px 42px rgba(24, 50, 62, 0.16);
+            box-shadow: 0 18px 42px rgba(45, 18, 75, 0.16);
             opacity: 0;
             visibility: hidden;
             transform: translateY(8px);
@@ -153,13 +154,13 @@
         .submenu a {
             padding: 10px 12px;
             border-radius: 6px;
-            color: #495761;
+            color: var(--ink);
             line-height: 1.2;
         }
 
         .submenu a:hover,
         .submenu a[aria-current="page"] {
-            color: var(--brand-dark);
+            color: var(--brand);
             background: var(--brand-soft);
         }
 
@@ -169,9 +170,7 @@
         }
 
         .section--soft {
-            background:
-                linear-gradient(180deg, rgba(231, 244, 248, 0.72), #ffffff 60%),
-                linear-gradient(90deg, rgba(127, 199, 177, 0.14), rgba(231, 119, 98, 0.08));
+            background: linear-gradient(180deg, #ffd3df 0%, #ffd6c3 100%);
         }
 
         .container {
@@ -186,9 +185,9 @@
             min-height: 42px;
             padding: 10px 18px;
             border: 1px solid transparent;
-            border-radius: 6px;
+            border-radius: 999px;
             color: #ffffff;
-            background: var(--brand);
+            background: var(--coral);
             font-size: 13px;
             font-weight: 800;
             cursor: pointer;
@@ -197,13 +196,13 @@
 
         .button:hover {
             transform: translateY(-1px);
-            box-shadow: 0 12px 22px rgba(22, 93, 121, 0.16);
+            box-shadow: 0 12px 22px rgba(255, 112, 68, 0.22);
         }
 
         .button--light {
-            color: var(--brand-dark);
+            color: var(--brand);
             background: #ffffff;
-            border-color: rgba(36, 124, 159, 0.22);
+            border-color: rgba(45, 18, 75, 0.16);
         }
 
         .eyebrow {
@@ -219,18 +218,55 @@
         p { color: var(--muted); line-height: 1.75; }
 
         .footer {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-            padding: 28px var(--pad);
+            padding: 52px var(--pad) 34px;
             color: rgba(255, 255, 255, 0.78);
-            background: #1e303a;
+            background: var(--brand);
             font-size: 13px;
         }
 
-        .footer a { color: #ffffff; font-weight: 800; }
+        .footer__grid {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.2fr) repeat(3, minmax(140px, 1fr));
+            gap: 36px;
+            width: min(100%, var(--content));
+            margin: 0 auto 34px;
+        }
+
+        .footer__brand img {
+            width: 170px;
+            height: auto;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .footer h3 {
+            margin: 0 0 14px;
+            color: #ffffff;
+            font-size: 15px;
+        }
+
+        .footer a,
+        .footer p {
+            display: block;
+            margin: 0 0 9px;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .footer a { font-weight: 800; }
+
+        .footer__bottom {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            width: min(100%, var(--content));
+            margin: 0 auto;
+            padding-top: 22px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 11px;
+        }
 
         @yield('styles')
 
@@ -253,6 +289,10 @@
                 visibility: visible;
                 transform: none;
             }
+
+            .footer__grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 640px) {
@@ -270,6 +310,14 @@
             }
 
             .nav-links { gap: 14px; }
+
+            .footer__grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer__bottom {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -321,7 +369,7 @@
                 </a>
                 <div class="submenu">
                     @foreach($services as $serviceSlug => $navService)
-                        <a href="{{ route('services.detail.v2', $serviceSlug) }}" @if($activeService === $serviceSlug) aria-current="page" @endif>{{ $navService['label'] }}</a>
+                        <a href="{{ url('/services/' . $serviceSlug) }}" @if($activeService === $serviceSlug) aria-current="page" @endif>{{ $navService['label'] }}</a>
                     @endforeach
                 </div>
             </div>
@@ -337,8 +385,36 @@
     </main>
 
     <footer class="footer" id="contact">
-        <span>© {{ date('Y') }} Our Care Pty Ltd. All rights reserved.</span>
-        <a href="mailto:admin@ourcarepty.com">admin@ourcarepty.com</a>
+        <div class="footer__grid">
+            <div class="footer__brand">
+                <img src="{{ asset('logo3.png') }}" alt="Our Care logo">
+                <p>Person-centred NDIS support for participants, families, and support workers.</p>
+            </div>
+            <div>
+                <h3>Services</h3>
+                <a href="{{ url('/services-v2') }}">All Services</a>
+                <a href="{{ url('/services/personal-care-support') }}">Personal Care</a>
+                <a href="{{ url('/services/community-participation') }}">Community Participation</a>
+                <a href="{{ url('/services/support-coordination') }}">Support Coordination</a>
+            </div>
+            <div>
+                <h3>Quick Links</h3>
+                <a href="{{ url('/about-v2') }}">About Us</a>
+                <a href="{{ url('/intake-v2') }}">Intake</a>
+                <a href="{{ url('/onboarding-v2') }}">Onboarding</a>
+                <a href="{{ url('/contact-v2') }}">Contact Us</a>
+            </div>
+            <div>
+                <h3>Contact</h3>
+                <a href="tel:0425795830">0425 795 830</a>
+                <a href="mailto:admin@ourcarepty.com">admin@ourcarepty.com</a>
+                <p>Sydney, Melbourne, Brisbane, Adelaide</p>
+            </div>
+        </div>
+        <div class="footer__bottom">
+            <span>Copyright &copy; {{ date('Y') }} Our Care Pty Ltd.</span>
+            <span>Website and design by Our Care</span>
+        </div>
     </footer>
 </body>
 </html>
