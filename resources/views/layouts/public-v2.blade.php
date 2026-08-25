@@ -88,12 +88,12 @@
         }
 
         .brand-link img {
-            width: 46px;
-            height: 46px;
+            width: 128px;
+            height: 52px;
             object-fit: contain;
         }
 
-        .brand-wordmark { display: grid; gap: 2px; }
+        .brand-wordmark { display: none; }
         .brand-wordmark strong { color: var(--brand); font-size: 17px; line-height: 1; }
         .brand-wordmark span { color: var(--coral); font-size: 10px; font-weight: 900; text-transform: uppercase; }
 
@@ -334,35 +334,35 @@
                 <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M6.6 4.8 8.7 3c.5-.4 1.2-.4 1.6.1l2 2.8c.3.5.3 1.1-.1 1.5l-1.1 1.2c.9 1.7 2.5 3.3 4.3 4.2l1.2-1c.5-.4 1.1-.4 1.6-.1l2.7 2c.5.4.6 1.1.2 1.6l-1.8 2.2c-.5.6-1.3.9-2.1.7C10.6 16.8 6.1 12.3 4.8 5.9c-.2-.7.1-1.5.8-2.1Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Call: 0425 795 830
+                Call: {{ \App\Support\CmsContent::get('brand.phone', config('cms.brand.phone')) }}
             </span>
             <span class="topbar__item">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M4 6.5h16v11H4v-11Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                     <path d="m4.5 7 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Email: admin@ourcarepty.com
+                Email: {{ \App\Support\CmsContent::get('brand.email', config('cms.brand.email')) }}
             </span>
         </div>
         <div class="topbar__group">
-            <a href="{{ url('/login') }}">Sign in</a>
-            <a href="{{ url('/signup-option') }}">Create account</a>
+            <a href="{{ url('/login') }}">{{ \App\Support\CmsContent::get('brand.sign_in_label', config('cms.brand.sign_in_label')) }}</a>
+            <a href="{{ url('/signup-option') }}">{{ \App\Support\CmsContent::get('brand.create_account_label', config('cms.brand.create_account_label')) }}</a>
         </div>
     </div>
 
     <header class="site-header">
         <a href="{{ url('/home-v2') }}" class="brand-link">
-            <img src="{{ asset('logo3.png') }}" alt="Our Care logo">
+            <img src="{{ asset(\App\Support\CmsContent::get('brand.logo', config('cms.brand.logo'))) }}" alt="{{ \App\Support\CmsContent::get('brand.site_name', config('cms.brand.site_name')) }} logo">
             <span class="brand-wordmark">
                 <strong>Our Care</strong>
                 <span>Your Wellness</span>
             </span>
         </a>
         <nav class="nav-links" aria-label="Primary navigation">
-            <a href="{{ url('/home-v2') }}" @if($activePage === 'home') aria-current="page" @endif>Home</a>
-            <a href="{{ url('/about-v2') }}" @if($activePage === 'about') aria-current="page" @endif>About Us</a>
+            <a href="{{ url('/home-v2') }}" @if($activePage === 'home') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.home-v2.label', 'Home') }}</a>
+            <a href="{{ url('/about-v2') }}" @if($activePage === 'about') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.about-v2.label', 'About Us') }}</a>
             <div class="nav-item">
-                <a href="{{ url('/services-v2') }}" class="nav-trigger" @if($activePage === 'services') aria-current="page" @endif>Services
+                <a href="{{ url('/services-v2') }}" class="nav-trigger" @if($activePage === 'services') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.services-v2.label', 'Services') }}
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -373,10 +373,10 @@
                     @endforeach
                 </div>
             </div>
-            <a href="{{ url('/services-v2#ndis') }}">NDIS Updates</a>
-            <a href="{{ url('/onboarding-v2') }}" @if($activePage === 'onboarding') aria-current="page" @endif>Onboarding</a>
-            <a href="{{ url('/intake-v2') }}" @if($activePage === 'intake') aria-current="page" @endif>Intake</a>
-            <a href="{{ url('/contact-v2') }}" @if($activePage === 'contact') aria-current="page" @endif>Contact Us</a>
+            <a href="{{ url(\App\Support\CmsContent::get('brand.updates_url', config('cms.brand.updates_url'))) }}">{{ \App\Support\CmsContent::get('brand.updates_label', config('cms.brand.updates_label')) }}</a>
+            <a href="{{ url('/onboarding-v2') }}" @if($activePage === 'onboarding') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.onboarding-v2.label', 'Onboarding') }}</a>
+            <a href="{{ url('/intake-v2') }}" @if($activePage === 'intake') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.intake-v2.label', 'Intake') }}</a>
+            <a href="{{ url('/contact-v2') }}" @if($activePage === 'contact') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.contact-v2.label', 'Contact Us') }}</a>
         </nav>
     </header>
 
@@ -387,28 +387,28 @@
     <footer class="footer" id="contact">
         <div class="footer__grid">
             <div class="footer__brand">
-                <img src="{{ asset('logo3.png') }}" alt="Our Care logo">
+                <img src="{{ asset(\App\Support\CmsContent::get('brand.logo', config('cms.brand.logo'))) }}" alt="{{ \App\Support\CmsContent::get('brand.site_name', config('cms.brand.site_name')) }} logo">
                 <p>Person-centred NDIS support for participants, families, and support workers.</p>
             </div>
             <div>
-                <h3>Services</h3>
-                <a href="{{ url('/services-v2') }}">All Services</a>
+                <h3>{{ \App\Support\CmsContent::get('brand.footer_services_label', config('cms.brand.footer_services_label')) }}</h3>
+                <a href="{{ url('/services-v2') }}">{{ \App\Support\CmsContent::get('pages.services-v2.label', 'Services') }}</a>
                 <a href="{{ url('/services/personal-care-support') }}">Personal Care</a>
                 <a href="{{ url('/services/community-participation') }}">Community Participation</a>
                 <a href="{{ url('/services/support-coordination') }}">Support Coordination</a>
             </div>
             <div>
-                <h3>Quick Links</h3>
+                <h3>{{ \App\Support\CmsContent::get('brand.footer_quick_links_label', config('cms.brand.footer_quick_links_label')) }}</h3>
                 <a href="{{ url('/about-v2') }}">About Us</a>
                 <a href="{{ url('/intake-v2') }}">Intake</a>
                 <a href="{{ url('/onboarding-v2') }}">Onboarding</a>
                 <a href="{{ url('/contact-v2') }}">Contact Us</a>
             </div>
             <div>
-                <h3>Contact</h3>
-                <a href="tel:0425795830">0425 795 830</a>
-                <a href="mailto:admin@ourcarepty.com">admin@ourcarepty.com</a>
-                <p>Sydney, Melbourne, Brisbane, Adelaide</p>
+                <h3>{{ \App\Support\CmsContent::get('brand.footer_contact_label', config('cms.brand.footer_contact_label')) }}</h3>
+                <a href="tel:{{ preg_replace('/\D+/', '', \App\Support\CmsContent::get('brand.phone', config('cms.brand.phone'))) }}">{{ \App\Support\CmsContent::get('brand.phone', config('cms.brand.phone')) }}</a>
+                <a href="mailto:{{ \App\Support\CmsContent::get('brand.email', config('cms.brand.email')) }}">{{ \App\Support\CmsContent::get('brand.email', config('cms.brand.email')) }}</a>
+                <p>{{ implode(', ', \App\Support\CmsContent::page('home-v2')['locations'] ?? config('cms.pages.home-v2.locations', [])) }}</p>
             </div>
         </div>
         <div class="footer__bottom">

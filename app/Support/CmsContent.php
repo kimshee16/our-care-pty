@@ -13,7 +13,16 @@ class CmsContent
         $content = config('cms');
 
         foreach (static::storedSettings() as $setting) {
-            data_set($content, $setting->key, json_decode((string) $setting->value, true));
+            $stored = json_decode((string) $setting->value, true);
+            $default = data_get($content, $setting->key);
+
+            data_set(
+                $content,
+                $setting->key,
+                is_array($default) && is_array($stored)
+                    ? array_replace_recursive($default, $stored)
+                    : $stored
+            );
         }
 
         $content['services'] = array_replace_recursive(

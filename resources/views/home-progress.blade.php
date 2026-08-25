@@ -1,23 +1,31 @@
 @extends('layouts.public-v2', ['activePage' => 'home'])
 
-@section('title', 'Our Care - Home')
+@section('title', ($page['title'] ?? 'Our Care') . ' - Home')
 
 @section('styles')
+    @php
+        $palette = array_replace(config('cms.palette', []), $palette ?? \App\Support\CmsContent::get('palette', []));
+    @endphp
     :root {
-        --home-plum: #2d124b;
-        --home-orange: #ff7044;
-        --home-ink: #2c1746;
-        --home-muted: #6f6278;
+        --home-plum: {{ $palette['primary'] ?? '#2d124b' }};
+        --home-secondary: {{ $palette['secondary'] ?? '#e6badf' }};
+        --home-orange: {{ $palette['accent'] ?? '#ff7044' }};
+        --home-bg: {{ $palette['background'] ?? '#fffaf7' }};
+        --home-surface: {{ $palette['surface'] ?? '#fff8f2' }};
+        --home-ink: {{ $palette['text'] ?? '#2c1746' }};
+        --home-muted: color-mix(in srgb, var(--home-ink) 68%, #fff);
+        --home-hero-start: color-mix(in srgb, var(--home-secondary) 76%, #fff);
+        --home-hero-mid: color-mix(in srgb, var(--home-secondary) 56%, var(--home-orange));
+        --home-hero-end: color-mix(in srgb, var(--home-orange) 30%, #fff);
     }
 
-    body { background: #fffaf7; }
+    body { background: var(--home-bg); }
     .topbar { min-height: 28px; padding-top: 5px; padding-bottom: 5px; border-bottom: 0; color: rgba(255,255,255,.86); background: var(--home-plum); font-size: 11px; }
     .topbar a { color: #fff; font-weight: 800; }
     .topbar .icon { width: 14px; height: 14px; }
     .site-header { min-height: 52px; padding-top: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(45,18,75,.08); background: rgba(255,255,255,.96); box-shadow: 0 10px 28px rgba(45,18,75,.06); }
-    .brand-link img { width: 44px; height: 44px; }
-    .brand-wordmark strong { color: var(--home-plum); font-size: 16px; }
-    .brand-wordmark span { color: var(--home-orange); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+    .brand-link img { width: 128px; height: 52px; object-fit: contain; }
+    .brand-wordmark { display: none; }
     .nav-links { gap: 18px; color: var(--home-ink); font-size: 12px; }
     .nav-links a:hover, .nav-links a[aria-current="page"], .nav-trigger:hover, .nav-item:hover .nav-trigger { color: var(--home-orange); }
     .footer { display: none; }
@@ -26,15 +34,15 @@
     .button:hover, .home-btn:hover { transform: translateY(-1px); box-shadow: 0 16px 30px rgba(255,112,68,.32); }
 
     .home-wrap { width: min(100%, 1080px); margin: 0 auto; }
-    .home-section { padding: clamp(54px, 7vw, 92px) var(--pad); background: #fff; }
-    .home-section.pink { background: linear-gradient(180deg, #ffd3df 0%, #ffd6c3 100%); }
-    .home-section.warm { background: linear-gradient(180deg, #ffdcc7 0%, #fff3d0 100%); }
-    .home-section.soft { background: #fff8f2; }
+    .home-section { padding: clamp(54px, 7vw, 92px) var(--pad); background: var(--home-bg); }
+    .home-section.pink { background: linear-gradient(180deg, color-mix(in srgb, var(--home-secondary) 62%, #fff) 0%, color-mix(in srgb, var(--home-orange) 28%, #fff) 100%); }
+    .home-section.warm { background: linear-gradient(180deg, color-mix(in srgb, var(--home-orange) 26%, #fff) 0%, color-mix(in srgb, var(--home-surface) 78%, #fff4cf) 100%); }
+    .home-section.soft { background: var(--home-surface); }
     .home-heading { max-width: 760px; margin: 0 auto 34px; text-align: center; }
     .home-heading h2 { margin: 0 0 12px; color: var(--home-ink); font-size: clamp(1.7rem, 3.2vw, 2.35rem); line-height: 1.15; }
     .home-heading p { margin: 0; color: var(--home-muted); font-size: 14px; }
 
-    .home-hero { overflow: hidden; min-height: min(620px, calc(100vh - 80px)); padding: clamp(58px, 8vw, 104px) var(--pad) 0; background: linear-gradient(100deg, #e6badf 0%, #f5c4d0 50%, #f9d0ca 100%); }
+    .home-hero { overflow: hidden; min-height: min(620px, calc(100vh - 80px)); padding: clamp(58px, 8vw, 104px) var(--pad) 0; background: linear-gradient(100deg, var(--home-hero-start) 0%, var(--home-hero-mid) 50%, var(--home-hero-end) 100%); }
     .home-hero-grid { display: grid; grid-template-columns: minmax(0,.88fr) minmax(330px,1.12fr); gap: clamp(24px, 6vw, 76px); align-items: end; width: min(100%, 1120px); min-height: 510px; margin: 0 auto; }
     .home-hero-copy { align-self: center; padding-bottom: 72px; }
     .home-hero h1 { max-width: 570px; margin: 0 0 18px; color: var(--home-ink); font-size: clamp(2.35rem, 5.5vw, 4.6rem); line-height: 1.03; }
@@ -46,7 +54,7 @@
     .intro-grid, .office-grid { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(280px,.95fr); gap: clamp(28px,5vw,70px); }
     .intro-copy p { margin-bottom: 18px; color: var(--home-muted); font-size: 14px; line-height: 1.85; }
     .fact-list { display: grid; gap: 16px; padding: 0; margin: 0; list-style: none; }
-    .fact-list li { padding: 15px 16px; border-radius: 8px; color: var(--home-ink); background: #fff8f2; box-shadow: 0 10px 22px rgba(45,18,75,.06); font-size: 14px; font-weight: 800; }
+    .fact-list li { padding: 15px 16px; border-radius: 8px; color: var(--home-ink); background: var(--home-surface); box-shadow: 0 10px 22px rgba(45,18,75,.06); font-size: 14px; font-weight: 800; }
 
     .pathway-grid, .event-grid, .testimonial-grid, .update-grid, .requirement-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
     .pathway-grid { margin-top: 36px; }
@@ -141,71 +149,98 @@
 
 @section('content')
     @php
-        $services = config('ourcare_v2.services');
+        $brand = $brand ?? \App\Support\CmsContent::get('brand', config('cms.brand'));
+        $page = array_replace_recursive(config('cms.pages.home-v2', []), $page ?? \App\Support\CmsContent::page('home-v2'));
+        $services = $services ?? \App\Support\CmsContent::services();
+        $pageLinks = \App\Support\CmsContent::get('pages', config('cms.pages', []));
         $serviceCards = array_slice($services, 0, 8, true);
-        $trust = [
-            ['icon' => '01', 'title' => 'Experienced Guidance', 'text' => 'Support through NDIS options, intake, and planning.'],
-            ['icon' => '02', 'title' => 'Personalised Support', 'text' => 'Care shaped around routines, preferences, and goals.'],
-            ['icon' => '03', 'title' => 'Up-to-Date Information', 'text' => 'Planning that keeps pace with service changes.'],
-            ['icon' => '04', 'title' => 'Trusted and Transparent', 'text' => 'Clear communication before, during, and after support.'],
-            ['icon' => '05', 'title' => 'Career-Focused Pathways', 'text' => 'Profile and onboarding support for care workers.'],
-            ['icon' => '06', 'title' => 'End-to-End Service', 'text' => 'From first enquiry through matching and support.'],
-        ];
+        $pageUrl = function (?string $path): string {
+            $path = trim((string) $path);
+            if ($path === '') return '#';
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '#')) return $path;
+            return url($path);
+        };
+        $assetUrl = function (?string $path): string {
+            $path = trim((string) $path);
+            if ($path === '') return asset('hero.jpg');
+            return str_starts_with($path, 'http://') || str_starts_with($path, 'https://') ? $path : asset($path);
+        };
+        $phoneHref = fn (?string $phone): string => 'tel:' . preg_replace('/\D+/', '', (string) $phone);
+        $introParagraphs = array_values(array_filter(array_map('trim', explode("\n\n", str_replace(["\r\n", "\r"], "\n", $page['intro_text'] ?? '')))));
+        $facts = $page['intro_facts'] ?? [];
+        $pathways = $page['pathways'] ?? [];
+        $trust = $page['trust_items'] ?? [];
+        $events = $page['events'] ?? [];
+        $testimonials = $page['testimonials'] ?? [];
+        $requirements = $page['requirements'] ?? [];
+        $updates = $page['updates'] ?? [];
+        $locations = $page['locations'] ?? [];
+        $offices = $page['offices'] ?? [];
+        $serviceFooterLinks = array_slice($services, 0, 3, true);
     @endphp
 
     <section class="home-hero">
         <div class="home-hero-grid">
             <div class="home-hero-copy">
-                <h1>The caring choice for NDIS support in Australia</h1>
-                <p>Plan your support, connect with trusted workers, and build routines that protect dignity, independence, and everyday wellbeing.</p>
-                <a class="home-btn" href="{{ url('/intake-v2') }}">Book a consultation</a>
-                <small class="home-note">Local, person-centred support for participants, families, carers, and community support workers.</small>
+                <h1>{{ $page['hero_title'] ?? 'Our Care' }}</h1>
+                <p>{{ $page['hero_subtitle'] ?? '' }}</p>
+                @if(!empty($page['hero_cta_label']))
+                    <a class="home-btn" href="{{ $pageUrl($page['hero_cta_url'] ?? '') }}">{{ $page['hero_cta_label'] }}</a>
+                @endif
+                @if(!empty($page['hero_note']))
+                    <small class="home-note">{{ $page['hero_note'] }}</small>
+                @endif
             </div>
-            <div class="home-hero-media"><img src="{{ asset('hero.jpg') }}" alt="Our Care support worker assisting a participant"></div>
+            <div class="home-hero-media"><img src="{{ $assetUrl($page['hero_image'] ?? 'hero.jpg') }}" alt="Our Care support worker assisting a participant"></div>
         </div>
     </section>
 
     <section class="home-section">
         <div class="home-wrap">
-            <div class="home-heading"><h2>NDIS and community support services in Australia</h2></div>
+            <div class="home-heading"><h2>{{ $page['intro_title'] ?? '' }}</h2></div>
             <div class="intro-grid">
                 <div class="intro-copy">
-                    <p>Our Care helps people find reliable support for daily living, personal care, community participation, transport, counselling, respite, and capacity building.</p>
-                    <p>We keep the process clear from first enquiry through intake, worker matching, onboarding, and ongoing service coordination.</p>
+                    @foreach($introParagraphs as $paragraph)
+                        <p>{{ $paragraph }}</p>
+                    @endforeach
                 </div>
                 <ul class="fact-list">
-                    <li>NDIS-aligned intake, planning, and service guidance</li>
-                    <li>Qualified workers for home, community, and daily routines</li>
-                    <li>Support coordination across goals, providers, and budgets</li>
+                    @foreach($facts as $fact)
+                        <li>{{ $fact }}</li>
+                    @endforeach
                 </ul>
             </div>
             <div class="pathway-grid">
-                <a class="image-card" href="{{ url('/services-v2') }}"><img src="{{ asset('contact.jpg') }}" alt="Participant and support worker outdoors"><span class="image-card-body"><h3>NDIS Services</h3><p>Explore practical supports for everyday life.</p></span></a>
-                <a class="image-card" href="{{ url('/healthcare-register') }}"><img src="{{ asset('ready.jpg') }}" alt="Support worker preparing care"><span class="image-card-body"><h3>Join Our Team</h3><p>Apply to become an Our Care worker.</p></span></a>
-                <a class="image-card" href="{{ url('/client-register') }}"><img src="{{ asset('hero.jpg') }}" alt="Client speaking with a support worker"><span class="image-card-body"><h3>Start Intake</h3><p>Tell us what support you need.</p></span></a>
+                @foreach($pathways as $pathway)
+                    <a class="image-card" href="{{ $pageUrl($pathway['url'] ?? '') }}"><img src="{{ $assetUrl($pathway['image'] ?? 'hero.jpg') }}" alt="{{ $pathway['title'] ?? 'Our Care pathway' }}"><span class="image-card-body"><h3>{{ $pathway['title'] ?? '' }}</h3><p>{{ $pathway['text'] ?? '' }}</p></span></a>
+                @endforeach
             </div>
         </div>
     </section>
 
     <section class="home-section pink">
         <div class="home-wrap">
-            <div class="home-heading"><h2>Why clients trust Our Care</h2><p>We are committed to support that feels clear, respectful, and dependable from the first conversation.</p></div>
+            <div class="home-heading"><h2>{{ $page['trust_heading'] ?? '' }}</h2><p>{{ $page['trust_text'] ?? '' }}</p></div>
             <div class="trust-grid">
                 @foreach($trust as $item)
                     <article class="trust-card"><span class="trust-icon">{{ $item['icon'] }}</span><h3>{{ $item['title'] }}</h3><p>{{ $item['text'] }}</p></article>
                 @endforeach
             </div>
-            <div class="rating-card"><div class="stars" aria-label="Five star rating">*****</div><p>Our Care made support easier to understand and easier to start. The team listened and helped us feel ready.</p></div>
-            <div class="home-heading" style="margin-bottom: 0;"><a class="home-btn" href="{{ url('/intake-v2') }}">Start your journey today</a></div>
+            @if(!empty($page['rating_text']))
+                <div class="rating-card"><div class="stars" aria-label="Five star rating">*****</div><p>{{ $page['rating_text'] }}</p></div>
+            @endif
+            @if(!empty($page['rating_cta_label']))
+                <div class="home-heading" style="margin-bottom: 0;"><a class="home-btn" href="{{ $pageUrl($page['rating_cta_url'] ?? '') }}">{{ $page['rating_cta_label'] }}</a></div>
+            @endif
         </div>
     </section>
 
     <section class="home-section">
         <div class="home-wrap">
-            <div class="home-heading"><h2>Find your support service</h2></div>
+            <div class="home-heading"><h2>{{ $page['services_heading'] ?? '' }}</h2></div>
             <div class="service-grid">
                 @foreach($serviceCards as $slug => $service)
-                    <a class="service-tile" href="{{ route('services.detail.v2', $slug) }}"><span class="service-tile-image"><img src="{{ asset($service['image']) }}" alt="{{ $service['label'] }}"></span><span>{{ $service['label'] }}</span></a>
+                    <a class="service-tile" href="{{ route('services.detail.v2', $slug) }}"><span class="service-tile-image"><img src="{{ $assetUrl($service['image'] ?? 'hero.jpg') }}" alt="{{ $service['label'] }}"></span><span>{{ $service['label'] }}</span></a>
                 @endforeach
             </div>
         </div>
@@ -213,63 +248,64 @@
 
     <section class="home-section warm">
         <div class="home-wrap">
-            <div class="home-heading"><h2>Join us at an upcoming session</h2></div>
+            <div class="home-heading"><h2>{{ $page['events_heading'] ?? '' }}</h2></div>
             <div class="event-grid">
-                <article class="event-card"><div class="event-poster"><img src="{{ asset('care-vector-04.png') }}" alt="Community care illustration"><div class="event-poster-copy"><small>Our Care</small><strong>Stay tuned for community events</strong></div></div><h3>Stay tuned for upcoming information sessions</h3><p>Register now</p><a class="home-btn" href="{{ url('/contact-v2') }}">Register now</a></article>
-                <article class="event-card"><div class="event-poster"><img src="{{ asset('contact.jpg') }}" alt="Support worker and participant outdoors"><div class="event-poster-copy"><small>Info Session</small><strong>Plan your NDIS support with confidence</strong></div></div><h3>Online session: understanding services and intake</h3><p>Tuesday, 7:00 PM</p><a class="home-btn" href="{{ url('/intake-v2') }}">Register now</a></article>
-                <article class="event-card"><div class="event-poster"><img src="{{ asset('ready.jpg') }}" alt="Care worker preparing support"><div class="event-poster-copy"><small>Worker Pathway</small><strong>Study, work, and grow in care</strong></div></div><h3>Worker session: profile, onboarding, and opportunities</h3><p>Saturday, 10:00 AM</p><a class="home-btn" href="{{ url('/healthcare-register') }}">Register now</a></article>
+                @foreach($events as $event)
+                    <article class="event-card"><div class="event-poster"><img src="{{ $assetUrl($event['image'] ?? 'hero.jpg') }}" alt="{{ $event['title'] ?? 'Our Care event' }}"><div class="event-poster-copy"><small>{{ $event['kicker'] ?? '' }}</small><strong>{{ $event['poster_title'] ?? '' }}</strong></div></div><h3>{{ $event['title'] ?? '' }}</h3><p>{{ $event['meta'] ?? '' }}</p><a class="home-btn" href="{{ $pageUrl($event['url'] ?? '') }}">{{ $event['button_label'] ?? 'Register now' }}</a></article>
+                @endforeach
             </div>
-            <div class="home-heading" style="margin-top: 64px;"><h2>Testimonials</h2><p>People choose Our Care because the process feels human, steady, and clear.</p></div>
+            <div class="home-heading" style="margin-top: 64px;"><h2>{{ $page['testimonials_heading'] ?? '' }}</h2><p>{{ $page['testimonials_text'] ?? '' }}</p></div>
             <div class="testimonial-grid">
-                <article class="testimonial-card"><div class="stars">*****</div><p>Our support worker is kind, reliable, and respectful of our routine.</p><strong>Family carer</strong></article>
-                <article class="testimonial-card"><div class="stars">*****</div><p>The intake team explained everything in plain language and helped us choose the right services.</p><strong>Participant</strong></article>
-                <article class="testimonial-card"><div class="stars">*****</div><p>I felt supported through registration and onboarding. The worker pathway was clear from the start.</p><strong>Support worker</strong></article>
+                @foreach($testimonials as $testimonial)
+                    <article class="testimonial-card"><div class="stars">*****</div><p>{{ $testimonial['text'] ?? '' }}</p><strong>{{ $testimonial['author'] ?? '' }}</strong></article>
+                @endforeach
             </div>
         </div>
     </section>
 
     <section class="home-section">
         <div class="home-wrap">
-            <div class="home-heading"><h2>Learn more about NDIS support pathways</h2></div>
+            <div class="home-heading"><h2>{{ $page['requirements_heading'] ?? '' }}</h2></div>
             <div class="requirement-grid">
-                <article class="requirement-card"><h3>Participant Support</h3><p>Receive support shaped around daily wellbeing, independence, and personal goals.</p><ul class="check-list"><li>Choose the right service</li><li>Prepare intake information</li><li>Understand your support plan</li><li>Plan worker matching</li></ul><a class="home-btn" href="{{ url('/client-register') }}">Start intake</a></article>
-                <article class="requirement-card"><h3>Worker Pathways</h3><p>Join Our Care as a qualified worker and connect with people who need dependable support.</p><ul class="check-list"><li>Build your worker profile</li><li>Upload qualifications</li><li>Complete onboarding</li><li>Apply for care opportunities</li></ul><a class="home-btn" href="{{ url('/healthcare-register') }}">Become a worker</a></article>
-                <article class="requirement-card"><h3>Family Guidance</h3><p>Receive clear help for care decisions, provider coordination, and service planning.</p><ul class="check-list"><li>Plan practical supports</li><li>Coordinate providers</li><li>Review participant goals</li><li>Keep communication clear</li></ul><a class="home-btn" href="{{ url('/contact-v2') }}">Talk to our team</a></article>
+                @foreach($requirements as $requirement)
+                    <article class="requirement-card"><h3>{{ $requirement['title'] ?? '' }}</h3><p>{{ $requirement['text'] ?? '' }}</p><ul class="check-list">@foreach(($requirement['items'] ?? []) as $item)<li>{{ $item }}</li>@endforeach</ul><a class="home-btn" href="{{ $pageUrl($requirement['url'] ?? '') }}">{{ $requirement['button_label'] ?? '' }}</a></article>
+                @endforeach
             </div>
         </div>
     </section>
 
     <section class="home-section soft" id="ndis">
         <div class="home-wrap">
-            <div class="home-heading"><h2>Stay informed: NDIS updates</h2></div>
+            <div class="home-heading"><h2>{{ $page['updates_heading'] ?? '' }}</h2></div>
             <div class="update-grid">
-                <article class="update-card"><img src="{{ asset('ready.jpg') }}" alt="Care worker preparing documents"><div class="update-card-body"><h3>NDIS pricing and support categories</h3><p>Keep care planning current as pricing arrangements and support categories change.</p><a class="text-link" href="{{ url('/services-v2#ndis') }}">Read more</a></div></article>
-                <article class="update-card"><img src="{{ asset('care-vector-06.png') }}" alt="Support worker sharing tea with participant"><div class="update-card-body"><h3>Preparing for intake with Our Care</h3><p>A little preparation helps the team understand goals, routines, and support preferences.</p><a class="text-link" href="{{ url('/intake-v2') }}">Read more</a></div></article>
-                <article class="update-card"><img src="{{ asset('contact.jpg') }}" alt="Participant supported in the community"><div class="update-card-body"><h3>Choosing services for everyday living</h3><p>Explore personal, domestic, transport, and community supports available.</p><a class="text-link" href="{{ url('/services-v2') }}">Read more</a></div></article>
+                @foreach($updates as $update)
+                    <article class="update-card"><img src="{{ $assetUrl($update['image'] ?? 'hero.jpg') }}" alt="{{ $update['title'] ?? 'Our Care update' }}"><div class="update-card-body"><h3>{{ $update['title'] ?? '' }}</h3><p>{{ $update['text'] ?? '' }}</p><a class="text-link" href="{{ $pageUrl($update['url'] ?? '') }}">{{ $update['link_label'] ?? 'Read more' }}</a></div></article>
+                @endforeach
             </div>
         </div>
     </section>
 
-    <section class="cta-band"><img src="{{ asset('contact.jpg') }}" alt="Our Care participants and support workers outdoors"><div class="cta-content"><h2>Get started today</h2><p>Our professional and helpful team is ready to guide the next step for your support needs.</p><a class="home-btn" href="{{ url('/intake-v2') }}">Book a free consultation</a></div></section>
+    <section class="cta-band"><img src="{{ $assetUrl($page['cta_image'] ?? 'contact.jpg') }}" alt="Our Care participants and support workers outdoors"><div class="cta-content"><h2>{{ $page['cta_title'] ?? '' }}</h2><p>{{ $page['cta_text'] ?? '' }}</p><a class="home-btn" href="{{ $pageUrl($page['cta_url'] ?? '') }}">{{ $page['cta_button_label'] ?? '' }}</a></div></section>
 
     <section class="home-section">
         <div class="home-wrap">
-            <div class="home-heading"><h2>Find your local office</h2><p>We are here to support you online, by phone, and in person.</p><div class="location-pills"><span>Sydney</span><span>Melbourne</span><span>Brisbane</span><span>Adelaide</span></div></div>
+            <div class="home-heading"><h2>{{ $page['office_heading'] ?? '' }}</h2><p>{{ $page['office_text'] ?? '' }}</p><div class="location-pills">@foreach($locations as $location)<span>{{ $location }}</span>@endforeach</div></div>
             <div class="office-grid">
-                <article class="office-card"><h3>Sydney head office</h3><p>Care coordination and participant enquiries</p><p><a class="text-link" href="mailto:admin@ourcarepty.com">admin@ourcarepty.com</a></p><p><a class="text-link" href="tel:0425795830">0425 795 830</a></p></article>
-                <article class="office-card"><h3>Melbourne support desk</h3><p>Worker onboarding and service information</p><p><a class="text-link" href="mailto:admin@ourcarepty.com">admin@ourcarepty.com</a></p><p><a class="text-link" href="tel:0425795830">0425 795 830</a></p></article>
+                @foreach($offices as $office)
+                    <article class="office-card"><h3>{{ $office['title'] ?? '' }}</h3><p>{{ $office['text'] ?? '' }}</p><p><a class="text-link" href="mailto:{{ $office['email'] ?? '' }}">{{ $office['email'] ?? '' }}</a></p><p><a class="text-link" href="{{ $phoneHref($office['phone'] ?? '') }}">{{ $office['phone'] ?? '' }}</a></p></article>
+                @endforeach
             </div>
         </div>
     </section>
 
     <section class="home-footer">
         <div class="home-footer-grid">
-            <div><img src="{{ asset('logo3.png') }}" alt="Our Care logo"><p>Person-centred NDIS support for participants, families, and support workers.</p></div>
-            <div><h3>Services</h3><a href="{{ url('/services-v2') }}">All Services</a><a href="{{ url('/services/personal-care-support') }}">Personal Care</a><a href="{{ url('/services/community-participation') }}">Community Participation</a><a href="{{ url('/services/support-coordination') }}">Support Coordination</a></div>
-            <div><h3>Quick Links</h3><a href="{{ url('/about-v2') }}">About Us</a><a href="{{ url('/intake-v2') }}">Intake</a><a href="{{ url('/onboarding-v2') }}">Onboarding</a><a href="{{ url('/contact-v2') }}">Contact Us</a></div>
-            <div><h3>Contact</h3><a href="tel:0425795830">0425 795 830</a><a href="mailto:admin@ourcarepty.com">admin@ourcarepty.com</a><p>Sydney, Melbourne, Brisbane, Adelaide</p></div>
+            <div><img src="{{ $assetUrl($brand['logo'] ?? 'logo3.png') }}" alt="Our Care logo"><p>{{ $page['footer_text'] ?? '' }}</p></div>
+            <div><h3>{{ $brand['footer_services_label'] ?? 'Services' }}</h3><a href="{{ url('/services-v2') }}">{{ $pageLinks['services-v2']['label'] ?? 'Services' }}</a>@foreach($serviceFooterLinks as $slug => $service)<a href="{{ route('services.detail.v2', $slug) }}">{{ $service['label'] ?? $service['title'] ?? $slug }}</a>@endforeach</div>
+            <div><h3>{{ $brand['footer_quick_links_label'] ?? 'Quick Links' }}</h3><a href="{{ url('/about-v2') }}">{{ ($pageLinks['about-v2']['label'] ?? null) ?: 'About Us' }}</a><a href="{{ url('/intake-v2') }}">{{ ($pageLinks['intake-v2']['label'] ?? null) ?: 'Intake' }}</a><a href="{{ url('/onboarding-v2') }}">{{ ($pageLinks['onboarding-v2']['label'] ?? null) ?: 'Onboarding' }}</a><a href="{{ url('/contact-v2') }}">{{ ($pageLinks['contact-v2']['label'] ?? null) ?: 'Contact Us' }}</a></div>
+            <div><h3>{{ $brand['footer_contact_label'] ?? 'Contact' }}</h3>@if(!empty($brand['phone']))<a href="{{ $phoneHref($brand['phone']) }}">{{ $brand['phone'] }}</a>@elseif(!empty($offices[0]['phone']))<a href="{{ $phoneHref($offices[0]['phone']) }}">{{ $offices[0]['phone'] }}</a>@endif @if(!empty($brand['email']))<a href="mailto:{{ $brand['email'] }}">{{ $brand['email'] }}</a>@elseif(!empty($offices[0]['email']))<a href="mailto:{{ $offices[0]['email'] }}">{{ $offices[0]['email'] }}</a>@endif<p>{{ implode(', ', $locations) }}</p></div>
         </div>
-        <div class="home-footer-bottom"><span>Copyright &copy; {{ date('Y') }} Our Care Pty Ltd.</span><span>Website and design by Our Care</span></div>
+        <div class="home-footer-bottom"><span>Copyright &copy; {{ date('Y') }} {{ $brand['site_name'] ?? 'Our Care Pty Ltd' }}.</span><span>{{ $page['footer_credit'] ?? '' }}</span></div>
     </section>
 
     <a class="chat-button" href="{{ url('/contact-v2') }}" aria-label="Contact Our Care">?</a>
