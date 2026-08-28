@@ -18,9 +18,16 @@
 @endphp
 
 <div class="dashboard-content cms-admin">
-    <div class="dashboard-header">
-        <h1>CMS</h1>
-        <p>Manage the public Our Care site content, colors, logo, images, and sections.</p>
+    <div class="dashboard-header cms-dashboard-header">
+        <div>
+            <h1>CMS</h1>
+            <p>Manage the public Our Care site content, colors, logo, images, and sections.</p>
+        </div>
+        <form method="POST" action="{{ url('/admin/cms/reset') }}" class="cms-reset-form" data-confirm-reset="Restore all CMS content and colors to the original defaults?">
+            @csrf
+            <input type="hidden" name="key" value="all">
+            <button type="submit" class="cms-link-button cms-danger-button">Restore Defaults</button>
+        </form>
     </div>
 
     @if(session('status'))
@@ -74,6 +81,11 @@
                     <h2>Brand</h2>
                     <span>Logo and site identity</span>
                 </div>
+                <form method="POST" action="{{ url('/admin/cms/reset') }}" class="cms-reset-form" data-confirm-reset="Restore brand settings to the original defaults?">
+                    @csrf
+                    <input type="hidden" name="key" value="brand">
+                    <button type="submit" class="cms-link-button">Restore Defaults</button>
+                </form>
             </div>
 
             <form method="POST" action="{{ url('/admin/cms/brand') }}" enctype="multipart/form-data" class="cms-form">
@@ -151,10 +163,10 @@
                     <h2>Color Palette</h2>
                     <span>Used by CMS-rendered public pages</span>
                 </div>
-                <form method="POST" action="{{ url('/admin/cms/reset') }}">
+                <form method="POST" action="{{ url('/admin/cms/reset') }}" class="cms-reset-form" data-confirm-reset="Restore color palette to the original defaults?">
                     @csrf
                     <input type="hidden" name="key" value="palette">
-                    <button type="submit" class="cms-link-button">Reset</button>
+                    <button type="submit" class="cms-link-button">Restore Defaults</button>
                 </form>
             </div>
 
@@ -189,10 +201,17 @@
                     $page = $pages[$slug] ?? config("cms.pages.$slug");
                     $sections = $page['sections'] ?? [];
                 @endphp
+                <form id="cms-reset-page-{{ $slug }}" method="POST" action="{{ url('/admin/cms/reset') }}" class="cms-reset-form" data-confirm-reset="Restore this page to the original defaults?" hidden>
+                    @csrf
+                    <input type="hidden" name="key" value="pages.{{ $slug }}">
+                </form>
                 <details class="cms-editor" id="page-{{ $slug }}" {{ $loop->first ? 'open' : '' }}>
                     <summary>
                         <span><small>Page</small>{{ $page['label'] ?? $slug }}</span>
-                        <a href="{{ url('/' . ($previewPaths[$slug] ?? $slug)) }}" target="_blank">Preview</a>
+                        <div class="cms-summary-actions" onclick="event.stopPropagation()">
+                            <a href="{{ url('/' . ($previewPaths[$slug] ?? $slug)) }}" target="_blank">Preview</a>
+                            <button type="submit" form="cms-reset-page-{{ $slug }}" class="cms-link-button">Restore Defaults</button>
+                        </div>
                     </summary>
                     <form method="POST" action="{{ url('/admin/cms/pages/' . $slug) }}" enctype="multipart/form-data" class="cms-form">
                         @csrf
@@ -620,10 +639,17 @@
                     $items = $service['items'] ?? [];
                     $intro = implode("\n\n", $service['intro'] ?? []);
                 @endphp
+                <form id="cms-reset-service-{{ $slug }}" method="POST" action="{{ url('/admin/cms/reset') }}" class="cms-reset-form" data-confirm-reset="Restore this service to the original defaults?" hidden>
+                    @csrf
+                    <input type="hidden" name="key" value="services.{{ $slug }}">
+                </form>
                 <details class="cms-editor" id="service-{{ $slug }}">
                     <summary>
                         <span><small>Service</small>{{ $service['label'] ?? $slug }}</span>
-                        <a href="{{ url('/cms/services/' . $slug) }}" target="_blank">Preview</a>
+                        <div class="cms-summary-actions" onclick="event.stopPropagation()">
+                            <a href="{{ url('/cms/services/' . $slug) }}" target="_blank">Preview</a>
+                            <button type="submit" form="cms-reset-service-{{ $slug }}" class="cms-link-button">Restore Defaults</button>
+                        </div>
                     </summary>
                     <form method="POST" action="{{ url('/admin/cms/services/' . $slug) }}" enctype="multipart/form-data" class="cms-form">
                         @csrf
@@ -703,6 +729,9 @@
 
 <style>
     .cms-admin { display: grid; gap: 24px; }
+    .cms-dashboard-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    .cms-dashboard-header h1, .cms-dashboard-header p { margin-left: 0; margin-right: 0; }
+    .cms-reset-form { margin: 0; }
     .cms-builder-shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 22px; align-items: start; }
     .cms-builder-sidebar { position: sticky; top: 88px; display: grid; gap: 18px; padding: 18px; border: 1px solid #e5e7eb; border-radius: 8px; background: #111827; color: #fff; box-shadow: 0 18px 34px rgba(17,24,39,.14); }
     .cms-builder-brand { display: flex; align-items: center; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.14); }
@@ -736,6 +765,7 @@
     .cms-button { background: var(--accent); color: #fff; }
     .cms-secondary-button { background: #eef2ff; color: var(--accent); }
     .cms-link-button { background: #f3f4f6; color: #374151; padding: 9px 12px; }
+    .cms-danger-button { background: #fee2e2; color: #991b1b; }
     .cms-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
     .cms-stack { display: grid; gap: 14px; padding: 18px; }
     .cms-editor { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; }
@@ -743,6 +773,8 @@
     .cms-editor summary span { display: grid; gap: 3px; }
     .cms-editor summary small { color: #6b7280; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
     .cms-editor summary a { color: var(--accent); font-size: 13px; text-decoration: none; }
+    .cms-summary-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+    .cms-summary-actions .cms-link-button { padding: 8px 10px; font-size: 13px; }
     .cms-section-list { display: grid; gap: 12px; }
     .cms-section-row { display: grid; grid-template-columns: minmax(160px, 260px) 1fr 40px; gap: 10px; align-items: stretch; }
     .cms-section-row.cms-wide-row { grid-template-columns: repeat(2, minmax(160px, 1fr)) 40px; }
@@ -776,6 +808,7 @@
     .cms-image-preview.is-empty { display: none; }
     @media (max-width: 1100px) { .cms-builder-shell, .cms-home-layout { grid-template-columns: 1fr; } .cms-builder-sidebar, .cms-section-navigator { position: static; } .cms-section-navigator { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 1000px) { .cms-grid, .cms-two, .cms-section-row, .cms-section-row.cms-wide-row { grid-template-columns: 1fr; } .cms-section-row.cms-wide-row textarea, .cms-section-row.cms-wide-row button { grid-column: auto; grid-row: auto; } .cms-section-row button { height: 40px; } }
+    @media (max-width: 700px) { .cms-dashboard-header, .cms-editor summary { align-items: stretch; flex-direction: column; } .cms-summary-actions { justify-content: flex-start; } }
 </style>
 
 <script>
@@ -872,6 +905,16 @@
 
         if (pathInput) {
             cmsUpdateImagePreview(pathInput, URL.createObjectURL(event.target.files[0]), event.target.files[0].name);
+        }
+    });
+
+    document.addEventListener('submit', function(event) {
+        if (!event.target.matches('[data-confirm-reset]')) {
+            return;
+        }
+
+        if (!confirm(event.target.dataset.confirmReset)) {
+            event.preventDefault();
         }
     });
 

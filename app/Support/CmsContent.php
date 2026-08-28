@@ -8,9 +8,21 @@ use Throwable;
 
 class CmsContent
 {
+    public static function defaults(): array
+    {
+        $defaults = config('cms', []);
+
+        $defaults['services'] = array_replace_recursive(
+            config('ourcare_v2.services', []),
+            $defaults['services'] ?? []
+        );
+
+        return $defaults;
+    }
+
     public static function all(): array
     {
-        $content = config('cms');
+        $content = static::defaults();
 
         foreach (static::storedSettings() as $setting) {
             $stored = json_decode((string) $setting->value, true);
@@ -24,11 +36,6 @@ class CmsContent
                     : $stored
             );
         }
-
-        $content['services'] = array_replace_recursive(
-            config('ourcare_v2.services', []),
-            $content['services'] ?? []
-        );
 
         return $content;
     }
@@ -59,6 +66,26 @@ class CmsContent
     public static function reset(string $key): void
     {
         CmsSetting::where('key', $key)->delete();
+    }
+
+    public static function resetAll(): void
+    {
+        CmsSetting::query()->delete();
+    }
+
+    public static function hasDefaultKey(string $key): bool
+    {
+        $value = static::defaults();
+
+        foreach (explode('.', $key) as $segment) {
+            if (! is_array($value) || ! array_key_exists($segment, $value)) {
+                return false;
+            }
+
+            $value = $value[$segment];
+        }
+
+        return true;
     }
 
     public static function page(string $slug): array

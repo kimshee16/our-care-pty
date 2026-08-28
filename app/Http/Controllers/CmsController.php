@@ -237,12 +237,21 @@ class CmsController extends Controller
     public function reset(Request $request)
     {
         $data = $request->validate([
-            'key' => ['required', 'string', 'max:120'],
+            'key' => ['required', 'string', 'max:160'],
         ]);
+
+        if ($data['key'] === 'all') {
+            CmsContent::resetAll();
+
+            return redirect('/admin/cms')->with('status', 'All CMS settings restored to defaults.');
+        }
+
+        abort_unless(CmsContent::hasDefaultKey($data['key']), 404);
 
         CmsContent::reset($data['key']);
 
-        return redirect('/admin/cms')->with('status', 'CMS section reset to default.');
+        return redirect($this->resetRedirectTarget($data['key']))
+            ->with('status', 'CMS section restored to defaults.');
     }
 
     public function home()
@@ -330,6 +339,19 @@ class CmsController extends Controller
             'section_intro' => $service['section_intro'] ?? '',
             'sections' => $service['items'] ?? [],
         ];
+    }
+
+    private function resetRedirectTarget(string $key): string
+    {
+        if (str_starts_with($key, 'pages.')) {
+            return '/admin/cms#page-' . Str::after($key, 'pages.');
+        }
+
+        if (str_starts_with($key, 'services.')) {
+            return '/admin/cms#service-' . Str::after($key, 'services.');
+        }
+
+        return '/admin/cms#site-kit';
     }
 
     private function storedAssetPath(Request $request, string $field, ?string $fallback): string
