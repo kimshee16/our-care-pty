@@ -26,16 +26,21 @@
         --home-hero-start: color-mix(in srgb, var(--home-secondary) 76%, #fff);
         --home-hero-mid: color-mix(in srgb, var(--home-secondary) 56%, var(--home-orange));
         --home-hero-end: color-mix(in srgb, var(--home-orange) 30%, #fff);
+        --home-content: 1180px;
+        --home-hero-content: 1544px;
     }
 
     body { background: var(--home-bg); }
-    .topbar { min-height: 28px; padding-top: 5px; padding-bottom: 5px; border-bottom: 0; color: rgba(255,255,255,.86); background: var(--home-plum); font-size: 11px; }
-    .topbar a { color: #fff; font-weight: 800; }
-    .topbar .icon { width: 14px; height: 14px; }
-    .site-header { min-height: 52px; padding-top: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(45,18,75,.08); background: rgba(255,255,255,.96); box-shadow: 0 10px 28px rgba(45,18,75,.06); }
-    .brand-link img { width: 128px; height: 52px; object-fit: contain; }
-    .brand-wordmark { display: none; }
-    .nav-links { gap: 18px; color: var(--home-ink); font-size: 12px; }
+    .topbar { min-height: 47px; padding: 8px max(18px, calc((100vw - var(--home-hero-content)) / 2)); border-bottom: 0; color: rgba(255,255,255,.9); background: var(--home-plum); font-size: 14px; line-height: 1.15; }
+    .topbar a { color: #fff; font-size: 14px; font-weight: 800; }
+    .topbar .icon { width: 21px; height: 21px; }
+    .topbar__group { gap: 26px; }
+    .topbar__item { gap: 9px; }
+    .site-header { min-height: 111px; padding: 14px max(18px, calc((100vw - var(--home-hero-content)) / 2)); border-bottom: 1px solid rgba(45,18,75,.08); background: rgba(255,255,255,.98); box-shadow: none; }
+    .brand-link { min-width: 260px; }
+    .brand-link img { width: 250px; height: 92px; object-fit: contain; object-position: left center; }
+    .nav-links { gap: 27px; color: var(--home-ink); font-size: 18px; font-weight: 700; }
+    .nav-links a, .nav-trigger { padding: 12px 0; }
     .nav-links a:hover, .nav-links a[aria-current="page"], .nav-trigger:hover, .nav-item:hover .nav-trigger { color: var(--home-orange); }
     .footer { display: none; }
 
@@ -43,6 +48,7 @@
     .cms-page-btn:hover { transform: translateY(-1px); box-shadow: 0 16px 30px rgba(255,112,68,.32); }
     .cms-page-wrap { width: min(100%, 1080px); margin: 0 auto; }
     .cms-page-section { padding: clamp(54px, 7vw, 92px) var(--pad); background: var(--home-bg); }
+    .cms-page-section.flush { padding-top: 0; }
     .cms-page-section.soft { background: var(--home-surface); }
     .cms-page-section.warm { background: linear-gradient(180deg, color-mix(in srgb, var(--home-orange) 20%, #fff) 0%, color-mix(in srgb, var(--home-surface) 82%, #fff4cf) 100%); }
     .cms-page-heading { max-width: 760px; margin: 0 auto 34px; text-align: center; }
@@ -60,9 +66,11 @@
     .cms-page-hero-media img { width: 100%; height: min(560px,100%); object-fit: cover; object-position: center top; border-radius: 8px 8px 0 0; box-shadow: 0 24px 60px rgba(45,18,75,.18); }
 
     .cms-page-intro { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(280px,.95fr); gap: clamp(28px,5vw,70px); align-items: start; }
+    .cms-page-intro.solo { display: block; max-width: 760px; margin: 0 auto; text-align: center; }
     .cms-page-copy p { margin: 0 0 18px; color: var(--home-muted); font-size: 14px; line-height: 1.85; }
     .cms-page-registration { display: inline-flex; margin-top: 4px; padding: 10px 14px; border-radius: 999px; color: var(--home-ink); background: var(--home-surface); box-shadow: 0 10px 22px rgba(45,18,75,.06); font-size: 12px; font-weight: 900; }
     .cms-page-section-grid, .cms-page-service-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+    .cms-page-inline-grid { margin-top: 52px; }
     .cms-page-card { min-height: 170px; padding: 26px; border-radius: 8px; background: #fff; box-shadow: 0 14px 30px rgba(45,18,75,.08); }
     .cms-page-card h3 { margin: 0 0 10px; color: var(--home-ink); font-size: 20px; line-height: 1.2; }
     .cms-page-card p { margin: 0; color: var(--home-muted); font-size: 13px; line-height: 1.65; }
@@ -80,15 +88,20 @@
     .cms-page-cta-content { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; }
     .cms-page-cta h2 { margin: 0 0 12px; color: #fff; font-size: clamp(1.9rem,4vw,3rem); }
     .cms-page-cta p { margin: 0 auto 24px; color: rgba(255,255,255,.88); font-size: 14px; }
-    .cms-page-footer { padding: 52px var(--pad) 34px; color: rgba(255,255,255,.78); background: var(--home-plum); }
-    .cms-page-footer-grid { display: grid; grid-template-columns: minmax(220px,1.2fr) repeat(3,minmax(140px,1fr)); gap: 36px; width: min(100%,1080px); margin: 0 auto 34px; }
+    .cms-page-footer { padding: 48px var(--pad) 28px; color: rgba(255,255,255,.78); background: var(--home-plum); }
+    .cms-page-footer-grid { display: grid; grid-template-columns: minmax(220px,1.2fr) repeat(3,minmax(140px,1fr)); gap: 36px; width: min(100%,var(--home-content)); margin: 0 auto 32px; }
     .cms-page-footer img { width: 170px; height: auto; padding: 8px 10px; border-radius: 8px; background: #fff; }
-    .cms-page-footer h3 { margin: 0 0 14px; color: #fff; font-size: 15px; }
-    .cms-page-footer a, .cms-page-footer p { display: block; margin: 0 0 9px; color: rgba(255,255,255,.78); font-size: 12px; line-height: 1.55; text-decoration: none; }
-    .cms-page-footer-bottom { display: flex; justify-content: space-between; gap: 18px; width: min(100%,1080px); margin: 0 auto; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.15); font-size: 11px; }
+    .cms-page-footer h3 { margin: 0 0 32px; color: #fff; font-size: 28px; font-weight: 900; line-height: 1.15; }
+    .cms-page-footer a, .cms-page-footer p { display: block; margin: 0 0 24px; color: rgba(255,255,255,.92); font-size: 18px; font-weight: 700; line-height: 1.55; text-decoration: none; }
+    .cms-page-footer-bottom { display: flex; justify-content: space-between; gap: 18px; width: min(100%,var(--home-content)); margin: 0 auto; padding-top: 28px; border-top: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.92); font-size: 18px; font-weight: 700; }
     .cms-page-chat { position: fixed; right: 22px; bottom: 22px; z-index: 25; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: #fff; background: var(--home-orange); box-shadow: 0 16px 32px rgba(255,112,68,.34); font-size: 22px; font-weight: 900; text-decoration: none; }
 
     @media (max-width: 980px) {
+        body .site-header { align-items: center; flex-direction: row; flex-wrap: wrap; gap: 8px 18px; }
+        body .brand-link { justify-content: flex-start; min-width: auto; }
+        body .brand-link img { width: 220px; height: 82px; }
+        body .nav-links { flex: 1 1 100%; justify-content: center; gap: 14px; max-width: 100%; overflow: hidden; }
+        .submenu { display: none !important; }
         .cms-page-hero-grid, .cms-page-intro, .cms-page-footer-grid { grid-template-columns: 1fr; }
         .cms-page-hero { padding-bottom: 42px; }
         .cms-page-hero-copy { padding-bottom: 0; }
@@ -97,6 +110,15 @@
     }
 
     @media (max-width: 640px) {
+        body .topbar { align-items: center; gap: 8px; min-width: 0; padding-left: 16px; padding-right: 16px; }
+        body .topbar__group { justify-content: center; width: 100%; gap: 8px 12px; }
+        body .topbar__item { white-space: normal; }
+        body .topbar__group:first-child .topbar__item:nth-child(2) { display: none; }
+        body .site-header { justify-content: center; min-width: 0; padding-left: 16px; padding-right: 16px; }
+        body .brand-link img { width: 190px; height: 70px; }
+        body .nav-links { justify-content: flex-start; gap: 12px 14px; width: 100%; min-width: 0; overflow-x: auto; overflow-y: hidden; padding-bottom: 5px; font-size: 9px; line-height: 1.2; scrollbar-width: none; }
+        body .nav-links::-webkit-scrollbar { display: none; }
+        body .nav-links a, body .nav-trigger { white-space: nowrap; }
         .cms-page-hero { min-height: auto; padding-top: 46px; }
         .cms-page-hero-grid, .cms-page-section-grid, .cms-page-service-grid { grid-template-columns: 1fr; }
         .cms-page-hero-grid { min-height: auto; }
@@ -124,6 +146,7 @@
         $phoneHref = fn (?string $phone): string => 'tel:' . preg_replace('/\D+/', '', (string) $phone);
         $introParagraphs = array_values(array_filter(array_map('trim', explode("\n\n", str_replace(["\r\n", "\r"], "\n", $page['intro_text'] ?? '')))));
         $sections = $page['sections'] ?? [];
+        $renderSectionsWithIntro = count($sections) && empty($page['section_heading']) && empty($page['section_intro']);
         $serviceFooterLinks = array_slice($services, 0, 3, true);
         $homePage = \App\Support\CmsContent::page('home-v2');
         $locations = $homePage['locations'] ?? [];
@@ -153,7 +176,7 @@
                     <p>{{ $page['summary'] }}</p>
                 @endif
             </div>
-            <div class="cms-page-intro">
+            <div class="cms-page-intro @if(empty($page['summary'])) solo @endif">
                 <div class="cms-page-copy">
                     @foreach($introParagraphs as $paragraph)
                         <p>{{ $paragraph }}</p>
@@ -167,34 +190,37 @@
                         <h3>{{ $page['heading'] ?? $page['title'] ?? 'Our Care' }}</h3>
                         <p>{{ $page['summary'] }}</p>
                     </article>
-                @elseif(count($sections))
-                    <div class="cms-page-section-grid" style="grid-template-columns: 1fr;">
-                        @foreach(array_slice($sections, 0, 1) as $section)
-                            <article class="cms-page-card">
-                                <h3>{{ $section['title'] ?? '' }}</h3>
-                                <p>{{ $section['text'] ?? '' }}</p>
-                            </article>
-                        @endforeach
-                    </div>
                 @endif
             </div>
+            @if($renderSectionsWithIntro)
+                <div class="cms-page-section-grid cms-page-inline-grid">
+                    @foreach($sections as $section)
+                        <article class="cms-page-card">
+                            <h3>{{ $section['title'] ?? '' }}</h3>
+                            <p>{{ $section['text'] ?? '' }}</p>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </section>
 
-    @if(!empty($page['section_heading']) || !empty($page['section_intro']) || count($sections) > 1)
-        <section class="cms-page-section soft">
+    @if(! $renderSectionsWithIntro && (!empty($page['section_heading']) || !empty($page['section_intro']) || count($sections)))
+        <section class="cms-page-section soft @if(empty($page['section_heading']) && empty($page['section_intro'])) flush @endif">
             <div class="cms-page-wrap">
-                <div class="cms-page-heading">
+                @if(!empty($page['section_heading']) || !empty($page['section_intro']))
+                    <div class="cms-page-heading">
                     @if(!empty($page['section_heading']))
                         <h2>{{ $page['section_heading'] }}</h2>
                     @endif
                     @if(!empty($page['section_intro']))
                         <p>{{ $page['section_intro'] }}</p>
                     @endif
-                </div>
+                    </div>
+                @endif
                 @if(count($sections))
                     <div class="cms-page-section-grid">
-                        @foreach(($page['summary'] ?? null) ? $sections : array_slice($sections, 1) as $section)
+                        @foreach($sections as $section)
                             <article class="cms-page-card">
                                 <h3>{{ $section['title'] ?? '' }}</h3>
                                 <p>{{ $section['text'] ?? '' }}</p>
@@ -210,7 +236,7 @@
         <section class="cms-page-section warm">
             <div class="cms-page-wrap">
                 <div class="cms-page-heading">
-                    <h2>Find your support service</h2>
+                    <h2>{{ $page['service_grid_heading'] ?? config('cms.pages.services-v2.service_grid_heading') }}</h2>
                 </div>
                 <div class="cms-page-service-grid">
                     @foreach($services as $slug => $service)
@@ -226,7 +252,7 @@
     @endif
 
     <section class="cms-page-cta">
-        <img src="{{ $assetUrl($homePage['cta_image'] ?? 'contact.jpg') }}" alt="Our Care support">
+        <img src="{{ $assetUrl($homePage['cta_image'] ?? config('cms.pages.home-v2.cta_image')) }}" alt="{{ $homePage['cta_title'] ?? config('cms.pages.home-v2.cta_title') }}">
         <div class="cms-page-cta-content">
             <h2>{{ $homePage['cta_title'] ?? 'Get started today' }}</h2>
             <p>{{ $homePage['cta_text'] ?? 'Our professional and helpful team is ready to guide the next step for your support needs.' }}</p>
@@ -238,7 +264,7 @@
         <div class="cms-page-footer-grid">
             <div>
                 <img src="{{ $assetUrl($brand['logo'] ?? 'logo3.png') }}" alt="{{ $brand['site_name'] ?? 'Our Care' }} logo">
-                <p>{{ $homePage['footer_text'] ?? 'Person-centred NDIS support for participants, families, and support workers.' }}</p>
+                <p>{{ $homePage['footer_text'] ?? config('cms.pages.home-v2.footer_text') }}</p>
             </div>
             <div>
                 <h3>{{ $brand['footer_services_label'] ?? 'Services' }}</h3>
@@ -271,5 +297,5 @@
         </div>
     </section>
 
-    <a class="cms-page-chat" href="{{ url('/contact-v2') }}" aria-label="Contact Our Care">?</a>
+    <a class="cms-page-chat" href="{{ $pageUrl($brand['chat_url'] ?? config('cms.brand.chat_url')) }}" aria-label="{{ $brand['chat_aria_label'] ?? config('cms.brand.chat_aria_label') }}">{{ $brand['chat_label'] ?? config('cms.brand.chat_label') }}</a>
 @endsection

@@ -33,6 +33,9 @@ class CmsController extends Controller
             'footer_services_label' => ['nullable', 'string', 'max:80'],
             'footer_quick_links_label' => ['nullable', 'string', 'max:80'],
             'footer_contact_label' => ['nullable', 'string', 'max:80'],
+            'chat_label' => ['nullable', 'string', 'max:20'],
+            'chat_url' => ['nullable', 'string', 'max:255'],
+            'chat_aria_label' => ['nullable', 'string', 'max:120'],
         ]);
 
         CmsContent::set('brand', [
@@ -48,6 +51,9 @@ class CmsController extends Controller
             'footer_services_label' => trim((string) ($data['footer_services_label'] ?? '')),
             'footer_quick_links_label' => trim((string) ($data['footer_quick_links_label'] ?? '')),
             'footer_contact_label' => trim((string) ($data['footer_contact_label'] ?? '')),
+            'chat_label' => trim((string) ($data['chat_label'] ?? '')),
+            'chat_url' => trim((string) ($data['chat_url'] ?? '')),
+            'chat_aria_label' => trim((string) ($data['chat_aria_label'] ?? '')),
         ]);
 
         return redirect('/admin/cms')->with('status', 'Brand settings saved.');
@@ -80,8 +86,13 @@ class CmsController extends Controller
             'hero_subtitle' => ['nullable', 'string', 'max:500'],
             'hero_image_path' => ['nullable', 'string', 'max:255'],
             'hero_image_upload' => ['nullable', 'image', 'max:6144'],
+            'hero_slide_images' => ['nullable', 'array'],
+            'hero_slide_images.*' => ['nullable', 'string', 'max:255'],
+            'hero_slide_alts' => ['nullable', 'array'],
+            'hero_slide_alts.*' => ['nullable', 'string', 'max:180'],
             'intro_title' => ['nullable', 'string', 'max:160'],
             'intro_text' => ['nullable', 'string', 'max:2000'],
+            'service_grid_heading' => ['nullable', 'string', 'max:180'],
             'section_titles' => ['nullable', 'array'],
             'section_titles.*' => ['nullable', 'string', 'max:160'],
             'section_texts' => ['nullable', 'array'],
@@ -182,6 +193,7 @@ class CmsController extends Controller
             'hero_image' => $this->storedAssetPath($request, 'hero_image_upload', $data['hero_image_path'] ?? data_get(config('cms.pages'), "$slug.hero_image")),
             'intro_title' => trim((string) ($data['intro_title'] ?? '')),
             'intro_text' => trim((string) ($data['intro_text'] ?? '')),
+            'service_grid_heading' => trim((string) ($data['service_grid_heading'] ?? '')),
             'sections' => $this->sectionRows($data['section_titles'] ?? [], $data['section_texts'] ?? []),
         ];
 
@@ -401,6 +413,10 @@ class CmsController extends Controller
             'hero_cta_label' => trim((string) ($data['hero_cta_label'] ?? '')),
             'hero_cta_url' => trim((string) ($data['hero_cta_url'] ?? '')),
             'hero_note' => trim((string) ($data['hero_note'] ?? '')),
+            'hero_slides' => $this->keyedRows([
+                'image' => $data['hero_slide_images'] ?? [],
+                'alt' => $data['hero_slide_alts'] ?? [],
+            ], ['image']),
             'intro_facts' => $this->stringRows($data['intro_facts'] ?? []),
             'pathways' => $this->keyedRows([
                 'title' => $data['pathway_titles'] ?? [],

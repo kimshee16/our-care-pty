@@ -14,6 +14,9 @@ return [
         'footer_services_label' => 'Services',
         'footer_quick_links_label' => 'Quick Links',
         'footer_contact_label' => 'Contact',
+        'chat_label' => '?',
+        'chat_url' => '/contact-v2',
+        'chat_aria_label' => 'Contact Our Care',
     ],
 
     'palette' => [
@@ -32,6 +35,11 @@ return [
             'hero_title' => 'The caring choice for NDIS support in Australia',
             'hero_subtitle' => 'Plan your support, connect with trusted workers, and build routines that protect dignity, independence, and everyday wellbeing.',
             'hero_image' => 'hero.jpg',
+            'hero_slides' => [
+                ['image' => 'cms/hero-women-transparent.png', 'alt' => 'Support worker helping an older participant use a phone'],
+                ['image' => 'cms/woman-man-wheelchair-edge.png', 'alt' => 'Support worker standing with a wheelchair participant'],
+                ['image' => 'cms/two-women-edge.png', 'alt' => 'Support worker speaking with an older participant'],
+            ],
             'intro_title' => 'NDIS and community support services in Australia',
             'intro_text' => "Our Care helps people find reliable support for daily living, personal care, community participation, transport, counselling, respite, and capacity building.\n\nWe keep the process clear from first enquiry through intake, worker matching, onboarding, and ongoing service coordination.",
             'sections' => [
@@ -128,6 +136,7 @@ return [
             'hero_image' => 'contact.jpg',
             'intro_title' => 'Services',
             'intro_text' => 'Each service can be tailored to the participant, their goals, and the kind of support that makes daily life easier.',
+            'service_grid_heading' => 'Find your support service',
             'sections' => [],
         ],
         'onboarding-v2' => [

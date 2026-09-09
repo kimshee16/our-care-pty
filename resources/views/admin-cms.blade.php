@@ -142,6 +142,20 @@
                     Footer Contact Heading
                     <input type="text" name="footer_contact_label" value="{{ old('footer_contact_label', $brand['footer_contact_label'] ?? '') }}">
                 </label>
+                <div class="cms-two">
+                    <label>
+                        Floating Button Label
+                        <input type="text" name="chat_label" value="{{ old('chat_label', $brand['chat_label'] ?? '') }}">
+                    </label>
+                    <label>
+                        Floating Button URL
+                        <input type="text" name="chat_url" value="{{ old('chat_url', $brand['chat_url'] ?? '') }}">
+                    </label>
+                </div>
+                <label>
+                    Floating Button Accessibility Label
+                    <input type="text" name="chat_aria_label" value="{{ old('chat_aria_label', $brand['chat_aria_label'] ?? '') }}">
+                </label>
                 <label>
                     Current Logo Path
                     <input type="text" name="logo_path" value="{{ old('logo_path', $brand['logo'] ?? '') }}">
@@ -253,6 +267,12 @@
                                 <textarea name="intro_text" rows="4">{{ old('intro_text', $page['intro_text'] ?? '') }}</textarea>
                             </label>
                         </div>
+                        @if($slug === 'services-v2')
+                            <label>
+                                Services Grid Heading
+                                <input type="text" name="service_grid_heading" value="{{ old('service_grid_heading', $page['service_grid_heading'] ?? '') }}">
+                            </label>
+                        @endif
                         <div class="cms-section-list" data-section-list>
                             @forelse($sections as $section)
                                 <div class="cms-section-row">
@@ -279,6 +299,7 @@
                                 $updates = $page['updates'] ?? [];
                                 $locations = implode(', ', $page['locations'] ?? []);
                                 $offices = $page['offices'] ?? [];
+                                $heroSlides = $page['hero_slides'] ?? [];
                             @endphp
                             <div class="cms-home-builder" id="homepage-builder">
                                 <div class="cms-builder-top">
@@ -319,6 +340,23 @@
                                         Hero Note
                                         <textarea name="hero_note" rows="2">{{ $page['hero_note'] ?? '' }}</textarea>
                                     </label>
+                                    <h4>Animated Hero Slides</h4>
+                                    <div class="cms-section-list" data-section-list>
+                                        @forelse($heroSlides as $slide)
+                                            <div class="cms-section-row">
+                                                <input type="text" name="hero_slide_images[]" value="{{ $slide['image'] ?? '' }}" placeholder="Image path">
+                                                <input type="text" name="hero_slide_alts[]" value="{{ $slide['alt'] ?? '' }}" placeholder="Alt text">
+                                                <button type="button" data-remove-row>&times;</button>
+                                            </div>
+                                        @empty
+                                            <div class="cms-section-row">
+                                                <input type="text" name="hero_slide_images[]" placeholder="Image path">
+                                                <input type="text" name="hero_slide_alts[]" placeholder="Alt text">
+                                                <button type="button" data-remove-row>&times;</button>
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                    <button type="button" class="cms-secondary-button" data-add-row>Add Hero Slide</button>
                                 </div>
 
                                 <div class="cms-home-group" id="block-intro">
@@ -816,6 +854,7 @@
     const cmsImagePathSelector = [
         'input[name="logo_path"]',
         'input[name="hero_image_path"]',
+        'input[name="hero_slide_images[]"]',
         'input[name="pathway_images[]"]',
         'input[name="event_images[]"]',
         'input[name="update_images[]"]',

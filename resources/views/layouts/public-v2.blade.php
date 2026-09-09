@@ -19,6 +19,7 @@
             --sun: #ffd36b;
             --pad: clamp(24px, 5vw, 72px);
             --content: 1180px;
+            --hero-content: 1544px;
             --shadow: 0 18px 42px rgba(45, 18, 75, 0.12);
         }
 
@@ -40,29 +41,30 @@
             align-items: center;
             justify-content: space-between;
             gap: 18px;
-            min-height: 28px;
-            padding: 5px var(--pad);
+            min-height: 47px;
+            padding: 8px max(18px, calc((100vw - var(--hero-content)) / 2));
             background: var(--brand);
             color: rgba(255, 255, 255, 0.86);
-            font-size: 11px;
+            font-size: 14px;
+            line-height: 1.15;
         }
 
         .topbar__group {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 14px;
+            gap: 26px;
         }
 
         .topbar__item {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
+            gap: 9px;
             white-space: nowrap;
         }
 
-        .topbar a { color: #ffffff; font-weight: 800; }
-        .icon { width: 15px; height: 15px; flex: 0 0 auto; }
+        .topbar a { color: #ffffff; font-size: 14px; font-weight: 800; }
+        .icon { width: 21px; height: 21px; flex: 0 0 auto; }
 
         .site-header {
             position: sticky;
@@ -72,42 +74,41 @@
             align-items: center;
             justify-content: space-between;
             gap: 24px;
-            min-height: 58px;
-            padding: 8px var(--pad);
+            min-height: 111px;
+            padding: 14px max(18px, calc((100vw - var(--hero-content)) / 2));
             border-bottom: 1px solid var(--line);
             background: rgba(255, 255, 255, 0.96);
-            box-shadow: 0 10px 28px rgba(45, 18, 75, 0.06);
-            backdrop-filter: blur(16px);
+            box-shadow: none;
         }
 
         .brand-link {
             display: flex;
             align-items: center;
-            gap: 12px;
-            min-width: 180px;
+            min-width: 260px;
         }
 
         .brand-link img {
-            width: 128px;
-            height: 52px;
+            width: 250px;
+            height: 92px;
             object-fit: contain;
+            object-position: left center;
         }
 
-        .brand-wordmark { display: none; }
-        .brand-wordmark strong { color: var(--brand); font-size: 17px; line-height: 1; }
-        .brand-wordmark span { color: var(--coral); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+        .brand-wordmark { display: grid; gap: 5px; }
+        .brand-wordmark strong { color: var(--brand); font-size: 34px; font-weight: 900; line-height: .85; }
+        .brand-wordmark span { color: var(--brand); font-size: 10px; font-weight: 900; line-height: 1; text-transform: uppercase; letter-spacing: .38em; }
 
         .nav-links {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 18px;
+            gap: 27px;
             color: var(--ink);
-            font-size: 12px;
+            font-size: 18px;
             font-weight: 700;
         }
 
-        .nav-links a { padding: 8px 0; }
+        .nav-links a { padding: 12px 0; }
         .nav-links a:hover,
         .nav-links a[aria-current="page"] { color: var(--coral); }
 
@@ -117,7 +118,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 0;
+            padding: 12px 0;
             color: inherit;
             font: inherit;
             font-weight: 700;
@@ -218,10 +219,9 @@
         p { color: var(--muted); line-height: 1.75; }
 
         .footer {
-            padding: 52px var(--pad) 34px;
+            padding: 48px var(--pad) 28px;
             color: rgba(255, 255, 255, 0.78);
             background: var(--brand);
-            font-size: 13px;
         }
 
         .footer__grid {
@@ -229,7 +229,7 @@
             grid-template-columns: minmax(220px, 1.2fr) repeat(3, minmax(140px, 1fr));
             gap: 36px;
             width: min(100%, var(--content));
-            margin: 0 auto 34px;
+            margin: 0 auto 32px;
         }
 
         .footer__brand img {
@@ -243,19 +243,20 @@
         .footer h3 {
             margin: 0 0 14px;
             color: #ffffff;
-            font-size: 15px;
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.15;
         }
 
         .footer a,
         .footer p {
             display: block;
-            margin: 0 0 9px;
-            color: rgba(255, 255, 255, 0.78);
-            font-size: 12px;
+            margin: 0 0 24px;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 18px;
+            font-weight: 700;
             line-height: 1.55;
         }
-
-        .footer a { font-weight: 800; }
 
         .footer__bottom {
             display: flex;
@@ -263,31 +264,44 @@
             gap: 18px;
             width: min(100%, var(--content));
             margin: 0 auto;
-            padding-top: 22px;
+            padding-top: 28px;
             border-top: 1px solid rgba(255, 255, 255, 0.15);
-            font-size: 11px;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 18px;
+            font-weight: 700;
         }
 
         @yield('styles')
 
         @media (max-width: 980px) {
             .site-header {
-                align-items: flex-start;
-                flex-direction: column;
+                align-items: center;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px 18px;
+            }
+
+            .brand-link {
+                justify-content: flex-start;
+                min-width: auto;
+            }
+
+            .brand-link img {
+                width: 220px;
+                height: 82px;
             }
 
             .nav-links {
+                flex: 1 1 100%;
                 flex-wrap: wrap;
-                justify-content: flex-start;
+                justify-content: center;
+                gap: 14px;
+                max-width: 100%;
+                overflow: hidden;
             }
 
             .submenu {
-                position: static;
-                min-width: min(100vw - 48px, 360px);
-                margin-top: 8px;
-                opacity: 1;
-                visibility: visible;
-                transform: none;
+                display: none !important;
             }
 
             .footer__grid {
@@ -305,11 +319,53 @@
             }
 
             .topbar {
-                align-items: flex-start;
+                align-items: center;
                 flex-direction: column;
+                gap: 8px;
+                min-width: 0;
             }
 
-            .nav-links { gap: 14px; }
+            .topbar__group {
+                justify-content: center;
+                width: 100%;
+                gap: 8px 12px;
+            }
+
+            .topbar__item {
+                white-space: normal;
+            }
+
+            .topbar__group:first-child .topbar__item:nth-child(2) {
+                display: none;
+            }
+
+            .site-header {
+                justify-content: center;
+                min-width: 0;
+            }
+
+            .brand-link img {
+                width: 190px;
+                height: 70px;
+            }
+
+            .nav-links {
+                justify-content: flex-start;
+                gap: 12px 14px;
+                width: 100%;
+                min-width: 0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding-bottom: 5px;
+                font-size: 9px;
+                line-height: 1.2;
+                scrollbar-width: none;
+            }
+
+            .nav-links::-webkit-scrollbar { display: none; }
+
+            .nav-links a,
+            .nav-trigger { white-space: nowrap; }
 
             .footer__grid {
                 grid-template-columns: 1fr;
@@ -326,6 +382,12 @@
         $services = $services ?? config('ourcare_v2.services');
         $activePage = $activePage ?? '';
         $activeService = $activeService ?? null;
+        $brand = \App\Support\CmsContent::get('brand', config('cms.brand'));
+        $brandName = $brand['site_name'] ?? config('cms.brand.site_name');
+        $cmsPages = \App\Support\CmsContent::get('pages', config('cms.pages', []));
+        $homePage = \App\Support\CmsContent::page('home-v2');
+        $footerServiceLinks = array_slice(\App\Support\CmsContent::services(), 0, 3, true);
+        $footerLocations = $homePage['locations'] ?? config('cms.pages.home-v2.locations', []);
     @endphp
 
     <div class="topbar">
@@ -334,29 +396,25 @@
                 <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M6.6 4.8 8.7 3c.5-.4 1.2-.4 1.6.1l2 2.8c.3.5.3 1.1-.1 1.5l-1.1 1.2c.9 1.7 2.5 3.3 4.3 4.2l1.2-1c.5-.4 1.1-.4 1.6-.1l2.7 2c.5.4.6 1.1.2 1.6l-1.8 2.2c-.5.6-1.3.9-2.1.7C10.6 16.8 6.1 12.3 4.8 5.9c-.2-.7.1-1.5.8-2.1Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Call: {{ \App\Support\CmsContent::get('brand.phone', config('cms.brand.phone')) }}
+                Call: {{ $brand['phone'] ?? config('cms.brand.phone') }}
             </span>
             <span class="topbar__item">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M4 6.5h16v11H4v-11Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                     <path d="m4.5 7 7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Email: {{ \App\Support\CmsContent::get('brand.email', config('cms.brand.email')) }}
+                Email: {{ $brand['email'] ?? config('cms.brand.email') }}
             </span>
         </div>
         <div class="topbar__group">
-            <a href="{{ url('/login') }}">{{ \App\Support\CmsContent::get('brand.sign_in_label', config('cms.brand.sign_in_label')) }}</a>
-            <a href="{{ url('/signup-option') }}">{{ \App\Support\CmsContent::get('brand.create_account_label', config('cms.brand.create_account_label')) }}</a>
+            <a href="{{ url('/login') }}">{{ $brand['sign_in_label'] ?? config('cms.brand.sign_in_label') }}</a>
+            <a href="{{ url('/signup-option') }}">{{ $brand['create_account_label'] ?? config('cms.brand.create_account_label') }}</a>
         </div>
     </div>
 
     <header class="site-header">
         <a href="{{ url('/home-v2') }}" class="brand-link">
-            <img src="{{ asset(\App\Support\CmsContent::get('brand.logo', config('cms.brand.logo'))) }}" alt="{{ \App\Support\CmsContent::get('brand.site_name', config('cms.brand.site_name')) }} logo">
-            <span class="brand-wordmark">
-                <strong>Our Care</strong>
-                <span>Your Wellness</span>
-            </span>
+            <img src="{{ asset($brand['logo'] ?? config('cms.brand.logo')) }}" alt="{{ $brandName }} logo">
         </a>
         <nav class="nav-links" aria-label="Primary navigation">
             <a href="{{ url('/home-v2') }}" @if($activePage === 'home') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.home-v2.label', 'Home') }}</a>
@@ -373,7 +431,7 @@
                     @endforeach
                 </div>
             </div>
-            <a href="{{ url(\App\Support\CmsContent::get('brand.updates_url', config('cms.brand.updates_url'))) }}">{{ \App\Support\CmsContent::get('brand.updates_label', config('cms.brand.updates_label')) }}</a>
+            <a href="{{ url($brand['updates_url'] ?? config('cms.brand.updates_url')) }}">{{ $brand['updates_label'] ?? config('cms.brand.updates_label') }}</a>
             <a href="{{ url('/onboarding-v2') }}" @if($activePage === 'onboarding') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.onboarding-v2.label', 'Onboarding') }}</a>
             <a href="{{ url('/intake-v2') }}" @if($activePage === 'intake') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.intake-v2.label', 'Intake') }}</a>
             <a href="{{ url('/contact-v2') }}" @if($activePage === 'contact') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.contact-v2.label', 'Contact Us') }}</a>
@@ -387,33 +445,33 @@
     <footer class="footer" id="contact">
         <div class="footer__grid">
             <div class="footer__brand">
-                <img src="{{ asset(\App\Support\CmsContent::get('brand.logo', config('cms.brand.logo'))) }}" alt="{{ \App\Support\CmsContent::get('brand.site_name', config('cms.brand.site_name')) }} logo">
-                <p>Person-centred NDIS support for participants, families, and support workers.</p>
+                <img src="{{ asset($brand['logo'] ?? config('cms.brand.logo')) }}" alt="{{ $brandName }} logo">
+                <p>{{ $homePage['footer_text'] ?? config('cms.pages.home-v2.footer_text') }}</p>
             </div>
             <div>
-                <h3>{{ \App\Support\CmsContent::get('brand.footer_services_label', config('cms.brand.footer_services_label')) }}</h3>
-                <a href="{{ url('/services-v2') }}">{{ \App\Support\CmsContent::get('pages.services-v2.label', 'Services') }}</a>
-                <a href="{{ url('/services/personal-care-support') }}">Personal Care</a>
-                <a href="{{ url('/services/community-participation') }}">Community Participation</a>
-                <a href="{{ url('/services/support-coordination') }}">Support Coordination</a>
+                <h3>{{ $brand['footer_services_label'] ?? config('cms.brand.footer_services_label') }}</h3>
+                <a href="{{ url('/services-v2') }}">{{ $cmsPages['services-v2']['label'] ?? 'Services' }}</a>
+                @foreach($footerServiceLinks as $slug => $service)
+                    <a href="{{ route('services.detail.v2', $slug) }}">{{ $service['label'] ?? $service['title'] ?? $slug }}</a>
+                @endforeach
             </div>
             <div>
-                <h3>{{ \App\Support\CmsContent::get('brand.footer_quick_links_label', config('cms.brand.footer_quick_links_label')) }}</h3>
-                <a href="{{ url('/about-v2') }}">About Us</a>
-                <a href="{{ url('/intake-v2') }}">Intake</a>
-                <a href="{{ url('/onboarding-v2') }}">Onboarding</a>
-                <a href="{{ url('/contact-v2') }}">Contact Us</a>
+                <h3>{{ $brand['footer_quick_links_label'] ?? config('cms.brand.footer_quick_links_label') }}</h3>
+                <a href="{{ url('/about-v2') }}">{{ ($cmsPages['about-v2']['label'] ?? null) ?: 'About Us' }}</a>
+                <a href="{{ url('/intake-v2') }}">{{ ($cmsPages['intake-v2']['label'] ?? null) ?: 'Intake' }}</a>
+                <a href="{{ url('/onboarding-v2') }}">{{ ($cmsPages['onboarding-v2']['label'] ?? null) ?: 'Onboarding' }}</a>
+                <a href="{{ url('/contact-v2') }}">{{ ($cmsPages['contact-v2']['label'] ?? null) ?: 'Contact Us' }}</a>
             </div>
             <div>
-                <h3>{{ \App\Support\CmsContent::get('brand.footer_contact_label', config('cms.brand.footer_contact_label')) }}</h3>
-                <a href="tel:{{ preg_replace('/\D+/', '', \App\Support\CmsContent::get('brand.phone', config('cms.brand.phone'))) }}">{{ \App\Support\CmsContent::get('brand.phone', config('cms.brand.phone')) }}</a>
-                <a href="mailto:{{ \App\Support\CmsContent::get('brand.email', config('cms.brand.email')) }}">{{ \App\Support\CmsContent::get('brand.email', config('cms.brand.email')) }}</a>
-                <p>{{ implode(', ', \App\Support\CmsContent::page('home-v2')['locations'] ?? config('cms.pages.home-v2.locations', [])) }}</p>
+                <h3>{{ $brand['footer_contact_label'] ?? config('cms.brand.footer_contact_label') }}</h3>
+                <a href="tel:{{ preg_replace('/\D+/', '', $brand['phone'] ?? config('cms.brand.phone')) }}">{{ $brand['phone'] ?? config('cms.brand.phone') }}</a>
+                <a href="mailto:{{ $brand['email'] ?? config('cms.brand.email') }}">{{ $brand['email'] ?? config('cms.brand.email') }}</a>
+                <p>{{ implode(', ', $footerLocations) }}</p>
             </div>
         </div>
         <div class="footer__bottom">
-            <span>Copyright &copy; {{ date('Y') }} Our Care Pty Ltd.</span>
-            <span>Website and design by Our Care</span>
+            <span>Copyright &copy; {{ date('Y') }} {{ $brandName }}.</span>
+            <span>{{ $homePage['footer_credit'] ?? config('cms.pages.home-v2.footer_credit') }}</span>
         </div>
     </footer>
 </body>

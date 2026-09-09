@@ -31,7 +31,27 @@ class CmsDefaultsResetTest extends TestCase
             ->assertOk()
             ->assertSee('Restore Defaults')
             ->assertSee('cms-reset-page-home-v2', false)
+            ->assertSee('hero_slide_images[]', false)
             ->assertSee('cms-reset-service-personal-care-support', false);
+    }
+
+    public function test_cms_list_fields_replace_default_lists(): void
+    {
+        CmsContent::set('pages.home-v2', [
+            'hero_slides' => [
+                ['image' => 'cms/custom-slide.png', 'alt' => 'Custom slide'],
+            ],
+            'trust_items' => [],
+        ]);
+
+        $page = CmsContent::page('home-v2');
+
+        $this->assertSame(
+            [['image' => 'cms/custom-slide.png', 'alt' => 'Custom slide']],
+            $page['hero_slides']
+        );
+        $this->assertSame([], $page['trust_items']);
+        $this->assertSame(config('cms.pages.home-v2.hero_title'), $page['hero_title']);
     }
 
     public function test_admin_can_restore_one_section_to_defaults(): void

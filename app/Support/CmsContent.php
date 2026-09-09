@@ -32,7 +32,7 @@ class CmsContent
                 $content,
                 $setting->key,
                 is_array($default) && is_array($stored)
-                    ? array_replace_recursive($default, $stored)
+                    ? static::mergeStoredValue($default, $stored)
                     : $stored
             );
         }
@@ -112,5 +112,20 @@ class CmsContent
 
             return [];
         }
+    }
+
+    private static function mergeStoredValue(array $default, array $stored): array
+    {
+        if (array_is_list($default) || array_is_list($stored)) {
+            return $stored;
+        }
+
+        foreach ($stored as $key => $value) {
+            $default[$key] = is_array($value) && isset($default[$key]) && is_array($default[$key])
+                ? static::mergeStoredValue($default[$key], $value)
+                : $value;
+        }
+
+        return $default;
     }
 }
