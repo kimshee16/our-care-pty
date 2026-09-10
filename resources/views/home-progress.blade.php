@@ -5,6 +5,10 @@
 @section('styles')
     @php
         $palette = array_replace(config('cms.palette', []), $palette ?? \App\Support\CmsContent::get('palette', []));
+        $stylePage = array_replace_recursive(config('cms.pages.home-v2', []), $page ?? \App\Support\CmsContent::page('home-v2'));
+        $heroBackgroundStart = $stylePage['hero_background_start'] ?: config('cms.pages.home-v2.hero_background_start', '#ffdbe5');
+        $heroBackgroundMid = $stylePage['hero_background_mid'] ?: config('cms.pages.home-v2.hero_background_mid', '#ffe4d2');
+        $heroBackgroundEnd = $stylePage['hero_background_end'] ?: config('cms.pages.home-v2.hero_background_end', '#fff5cf');
     @endphp
     :root {
         --home-plum: {{ $palette['primary'] ?? '#2d124b' }};
@@ -17,6 +21,7 @@
         --home-hero-start: color-mix(in srgb, var(--home-secondary) 76%, #fff);
         --home-hero-mid: color-mix(in srgb, var(--home-secondary) 56%, var(--home-orange));
         --home-hero-end: color-mix(in srgb, var(--home-orange) 30%, #fff);
+        --home-hero-background: linear-gradient(100deg, {{ $heroBackgroundStart }} 0%, {{ $heroBackgroundMid }} 47%, {{ $heroBackgroundEnd }} 100%);
         --home-peach: #ffdfc2;
         --home-blush: #f7c5d8;
         --home-cream: #fff5d6;
@@ -52,7 +57,7 @@
     .home-heading h2 { margin: 0 0 18px; color: var(--home-ink); font-size: clamp(2rem, 2.8vw, 2.35rem); line-height: 1.18; }
     .home-heading p { margin: 0; color: color-mix(in srgb, var(--home-ink) 70%, #fff); font-size: 17px; line-height: 1.7; }
 
-    .home-hero { position: relative; overflow: hidden; min-height: 700px; padding: 0 clamp(90px, 9.8vw, 188px); background: linear-gradient(100deg, #ffdbe5 0%, #ffe4d2 47%, #fff5cf 100%); }
+    .home-hero { position: relative; overflow: hidden; min-height: 700px; padding: 0 clamp(90px, 9.8vw, 188px); background: var(--home-hero-background); }
     .home-hero-grid { display: grid; grid-template-columns: minmax(560px, 650px) minmax(0,1fr); gap: 64px; align-items: stretch; width: 100%; max-width: var(--home-hero-content); min-height: 700px; margin: 0 auto; }
     .home-hero-copy { position: relative; z-index: 2; align-self: start; padding: 194px 0 24px; }
     .home-hero h1 { max-width: 720px; margin: 0 0 32px; color: var(--home-ink); font-size: 64px; font-weight: 950; line-height: 1.16; overflow-wrap: break-word; letter-spacing: 0; -webkit-text-stroke: .35px currentColor; text-shadow: .25px 0 0 currentColor, 0 .25px 0 currentColor; }

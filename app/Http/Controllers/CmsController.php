@@ -86,6 +86,9 @@ class CmsController extends Controller
             'hero_subtitle' => ['nullable', 'string', 'max:500'],
             'hero_image_path' => ['nullable', 'string', 'max:255'],
             'hero_image_upload' => ['nullable', 'image', 'max:6144'],
+            'hero_background_start' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'hero_background_mid' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'hero_background_end' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'hero_slide_images' => ['nullable', 'array'],
             'hero_slide_images.*' => ['nullable', 'string', 'max:255'],
             'hero_slide_alts' => ['nullable', 'array'],
@@ -410,6 +413,9 @@ class CmsController extends Controller
     private function homePageRows(array $data): array
     {
         return [
+            'hero_background_start' => $data['hero_background_start'] ?? config('cms.pages.home-v2.hero_background_start'),
+            'hero_background_mid' => $data['hero_background_mid'] ?? config('cms.pages.home-v2.hero_background_mid'),
+            'hero_background_end' => $data['hero_background_end'] ?? config('cms.pages.home-v2.hero_background_end'),
             'hero_cta_label' => trim((string) ($data['hero_cta_label'] ?? '')),
             'hero_cta_url' => trim((string) ($data['hero_cta_url'] ?? '')),
             'hero_note' => trim((string) ($data['hero_note'] ?? '')),

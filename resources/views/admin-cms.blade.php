@@ -300,6 +300,9 @@
                                 $locations = implode(', ', $page['locations'] ?? []);
                                 $offices = $page['offices'] ?? [];
                                 $heroSlides = $page['hero_slides'] ?? [];
+                                $heroBackgroundStart = $page['hero_background_start'] ?? config('cms.pages.home-v2.hero_background_start');
+                                $heroBackgroundMid = $page['hero_background_mid'] ?? config('cms.pages.home-v2.hero_background_mid');
+                                $heroBackgroundEnd = $page['hero_background_end'] ?? config('cms.pages.home-v2.hero_background_end');
                             @endphp
                             <div class="cms-home-builder" id="homepage-builder">
                                 <div class="cms-builder-top">
@@ -326,6 +329,29 @@
 
                                 <div class="cms-home-group" id="block-hero">
                                     <h4>Hero</h4>
+                                    <div class="cms-color-grid">
+                                        <label class="cms-color-pair">
+                                            Hero Background Start
+                                            <span>
+                                                <input type="color" name="hero_background_start" value="{{ old('hero_background_start', $heroBackgroundStart) }}">
+                                                <input type="text" value="{{ old('hero_background_start', $heroBackgroundStart) }}" data-color-text="hero_background_start" aria-label="Hero background start hex value">
+                                            </span>
+                                        </label>
+                                        <label class="cms-color-pair">
+                                            Hero Background Middle
+                                            <span>
+                                                <input type="color" name="hero_background_mid" value="{{ old('hero_background_mid', $heroBackgroundMid) }}">
+                                                <input type="text" value="{{ old('hero_background_mid', $heroBackgroundMid) }}" data-color-text="hero_background_mid" aria-label="Hero background middle hex value">
+                                            </span>
+                                        </label>
+                                        <label class="cms-color-pair">
+                                            Hero Background End
+                                            <span>
+                                                <input type="color" name="hero_background_end" value="{{ old('hero_background_end', $heroBackgroundEnd) }}">
+                                                <input type="text" value="{{ old('hero_background_end', $heroBackgroundEnd) }}" data-color-text="hero_background_end" aria-label="Hero background end hex value">
+                                            </span>
+                                        </label>
+                                    </div>
                                     <div class="cms-two">
                                     <label>
                                         Hero CTA Label
@@ -799,6 +825,9 @@
     .cms-form textarea { resize: vertical; line-height: 1.5; }
     .cms-colors label span { display: grid; grid-template-columns: 56px 1fr; gap: 10px; }
     .cms-colors input[type="color"] { width: 56px; height: 44px; padding: 2px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; }
+    .cms-color-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .cms-color-pair span { display: grid; grid-template-columns: 56px 1fr; gap: 10px; }
+    .cms-color-pair input[type="color"] { width: 56px; height: 44px; padding: 2px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; }
     .cms-button, .cms-secondary-button, .cms-link-button { border: none; border-radius: 8px; padding: 12px 16px; font-weight: 800; cursor: pointer; font: inherit; }
     .cms-button { background: var(--accent); color: #fff; }
     .cms-secondary-button { background: #eef2ff; color: var(--accent); }
@@ -845,7 +874,7 @@
     .cms-image-preview span { overflow: hidden; color: #6b7280; font-size: 11px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .cms-image-preview.is-empty { display: none; }
     @media (max-width: 1100px) { .cms-builder-shell, .cms-home-layout { grid-template-columns: 1fr; } .cms-builder-sidebar, .cms-section-navigator { position: static; } .cms-section-navigator { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 1000px) { .cms-grid, .cms-two, .cms-section-row, .cms-section-row.cms-wide-row { grid-template-columns: 1fr; } .cms-section-row.cms-wide-row textarea, .cms-section-row.cms-wide-row button { grid-column: auto; grid-row: auto; } .cms-section-row button { height: 40px; } }
+    @media (max-width: 1000px) { .cms-grid, .cms-two, .cms-color-grid, .cms-section-row, .cms-section-row.cms-wide-row { grid-template-columns: 1fr; } .cms-section-row.cms-wide-row textarea, .cms-section-row.cms-wide-row button { grid-column: auto; grid-row: auto; } .cms-section-row button { height: 40px; } }
     @media (max-width: 700px) { .cms-dashboard-header, .cms-editor summary { align-items: stretch; flex-direction: column; } .cms-summary-actions { justify-content: flex-start; } }
 </style>
 

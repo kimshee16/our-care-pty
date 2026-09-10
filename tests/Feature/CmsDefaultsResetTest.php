@@ -31,6 +31,7 @@ class CmsDefaultsResetTest extends TestCase
             ->assertOk()
             ->assertSee('Restore Defaults')
             ->assertSee('cms-reset-page-home-v2', false)
+            ->assertSee('hero_background_start', false)
             ->assertSee('hero_slide_images[]', false)
             ->assertSee('cms-reset-service-personal-care-support', false);
     }
@@ -99,5 +100,31 @@ class CmsDefaultsResetTest extends TestCase
             ->assertNotFound();
 
         $this->assertDatabaseHas('cms_settings', ['key' => 'brand']);
+    }
+
+    public function test_admin_can_configure_home_hero_background_colors(): void
+    {
+        $admin = User::factory()->create(['accounttype' => 'admin']);
+
+        $this->withSession(['user' => $admin->toArray()])
+            ->post('/admin/cms/pages/home-v2', [
+                'label' => 'Home',
+                'title' => 'Our Care Pty Ltd',
+                'hero_title' => 'Configured hero',
+                'hero_background_start' => '#112233',
+                'hero_background_mid' => '#445566',
+                'hero_background_end' => '#778899',
+            ])
+            ->assertRedirect('/admin/cms#page-home-v2');
+
+        $page = CmsContent::page('home-v2');
+
+        $this->assertSame('#112233', $page['hero_background_start']);
+        $this->assertSame('#445566', $page['hero_background_mid']);
+        $this->assertSame('#778899', $page['hero_background_end']);
+
+        $this->get('/cms/home')
+            ->assertOk()
+            ->assertSee('--home-hero-background: linear-gradient(100deg, #112233 0%, #445566 47%, #778899 100%);', false);
     }
 }

@@ -35,6 +35,9 @@ return [
             'hero_title' => 'The caring choice for NDIS support in Australia',
             'hero_subtitle' => 'Plan your support, connect with trusted workers, and build routines that protect dignity, independence, and everyday wellbeing.',
             'hero_image' => 'hero.jpg',
+            'hero_background_start' => '#ffdbe5',
+            'hero_background_mid' => '#ffe4d2',
+            'hero_background_end' => '#fff5cf',
             'hero_slides' => [
                 ['image' => 'cms/hero-women-transparent.png', 'alt' => 'Support worker helping an older participant use a phone'],
                 ['image' => 'cms/woman-man-wheelchair-edge.png', 'alt' => 'Support worker standing with a wheelchair participant'],
