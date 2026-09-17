@@ -9,6 +9,8 @@
         $heroBackgroundStart = $stylePage['hero_background_start'] ?: config('cms.pages.home-v2.hero_background_start', '#ffdbe5');
         $heroBackgroundMid = $stylePage['hero_background_mid'] ?: config('cms.pages.home-v2.hero_background_mid', '#ffe4d2');
         $heroBackgroundEnd = $stylePage['hero_background_end'] ?: config('cms.pages.home-v2.hero_background_end', '#fff5cf');
+        $fontFamilies = config('cms.font_families', []);
+        $typography = $stylePage['typography'] ?? [];
     @endphp
     :root {
         --home-plum: {{ $palette['primary'] ?? '#2d124b' }};
@@ -28,6 +30,23 @@
         --home-content: 1180px;
         --home-hero-content: 1544px;
     }
+
+    @foreach($typography as $sectionKey => $sectionTypography)
+        @php
+            $sectionClass = preg_replace('/[^a-z0-9_-]/i', '', (string) $sectionKey);
+            $familyKey = $sectionTypography['font_family'] ?? '';
+            $familyStack = $familyKey && $familyKey !== 'default' ? ($fontFamilies[$familyKey] ?? null) : null;
+            $fontSize = isset($sectionTypography['font_size']) ? (int) $sectionTypography['font_size'] : null;
+            $fontColor = $sectionTypography['font_color'] ?? null;
+        @endphp
+        @if($sectionClass && ($familyStack || $fontSize || $fontColor))
+            .home-typo-{{ $sectionClass }} :where(h1,h2,h3,p,small,a,span,strong,li) {
+                @if($familyStack) font-family: {!! $familyStack !!} !important; @endif
+                @if($fontSize) font-size: {{ $fontSize }}px !important; @endif
+                @if($fontColor) color: {{ $fontColor }} !important; @endif
+            }
+        @endif
+    @endforeach
 
     body { overflow-x: hidden; background: #fff; }
     .topbar { min-height: 47px; padding: 8px max(18px, calc((100vw - var(--home-hero-content)) / 2)); border-bottom: 0; color: rgba(255,255,255,.9); background: var(--home-plum); font-size: 14px; line-height: 1.15; }
@@ -165,7 +184,7 @@
 
     .home-footer { padding: 48px var(--pad) 28px; color: rgba(255,255,255,.78); background: var(--home-plum); }
     .home-footer-grid { display: grid; grid-template-columns: minmax(220px,1.2fr) repeat(3,minmax(140px,1fr)); gap: 36px; width: min(100%, var(--home-content)); margin: 0 auto 32px; }
-    .home-footer img { width: 150px; height: auto; padding: 7px 9px; border-radius: 5px; background: #fff; }
+    .home-footer img { width: 150px; height: auto; padding: 0; border-radius: 0; background: transparent; object-fit: contain; }
     .home-footer h3 { margin: 0 0 32px; color: #fff; font-size: 28px; font-weight: 900; line-height: 1.15; }
     .home-footer a, .home-footer p { display: block; margin: 0 0 24px; color: rgba(255,255,255,.92); font-size: 18px; font-weight: 700; line-height: 1.55; }
     .home-footer-bottom { display: flex; justify-content: space-between; gap: 18px; width: min(100%, var(--home-content)); margin: 0 auto; padding-top: 28px; border-top: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.92); font-size: 18px; font-weight: 700; }
@@ -257,7 +276,7 @@
         $serviceFooterLinks = array_slice($services, 0, 3, true);
     @endphp
 
-    <section class="home-hero">
+    <section class="home-hero home-typo-hero">
         <div class="home-hero-grid">
             <div class="home-hero-copy">
                 <h1>{{ $page['hero_title'] ?? 'Our Care' }}</h1>
@@ -279,8 +298,8 @@
 
     <section class="home-section">
         <div class="home-wrap">
-            <div class="home-heading"><h2>{{ $page['intro_title'] ?? '' }}</h2></div>
-            <div class="intro-grid">
+            <div class="home-heading home-typo-intro"><h2>{{ $page['intro_title'] ?? '' }}</h2></div>
+            <div class="intro-grid home-typo-intro">
                 <div class="intro-copy">
                     @foreach($introParagraphs as $paragraph)
                         <p>{{ $paragraph }}</p>
@@ -292,7 +311,7 @@
                     @endforeach
                 </ul>
             </div>
-            <div class="pathway-grid">
+            <div class="pathway-grid home-typo-pathways">
                 @foreach($pathways as $pathway)
                     <a class="image-card" href="{{ $pageUrl($pathway['url'] ?? '') }}"><img src="{{ $assetUrl($pathway['image'] ?? 'hero.jpg') }}" alt="{{ $pathway['title'] ?? 'Our Care pathway' }}"><span class="image-card-body"><h3>{{ $pathway['title'] ?? '' }}</h3><p>{{ $pathway['text'] ?? '' }}</p></span></a>
                 @endforeach
@@ -300,7 +319,7 @@
         </div>
     </section>
 
-    <section class="home-section pink">
+    <section class="home-section pink home-typo-trust">
         <div class="home-wrap">
             <div class="home-heading"><h2>{{ $page['trust_heading'] ?? '' }}</h2><p>{{ $page['trust_text'] ?? '' }}</p></div>
             <div class="trust-grid">
@@ -317,7 +336,7 @@
         </div>
     </section>
 
-    <section class="home-section">
+    <section class="home-section home-typo-services">
         <div class="home-wrap">
             <div class="home-heading"><h2>{{ $page['services_heading'] ?? '' }}</h2></div>
             <div class="service-grid">
@@ -330,14 +349,14 @@
 
     <section class="home-section warm">
         <div class="home-wrap">
-            <div class="home-heading"><h2>{{ $page['events_heading'] ?? '' }}</h2></div>
-            <div class="event-grid">
+            <div class="home-heading home-typo-events"><h2>{{ $page['events_heading'] ?? '' }}</h2></div>
+            <div class="event-grid home-typo-events">
                 @foreach($events as $event)
                     <article class="event-card"><div class="event-poster"><img src="{{ $assetUrl($event['image'] ?? 'hero.jpg') }}" alt="{{ $event['title'] ?? config('cms.pages.home-v2.events.0.title') }}"><div class="event-poster-copy"><small>{{ $event['kicker'] ?? '' }}</small><strong>{{ $event['poster_title'] ?? '' }}</strong></div></div><h3>{{ $event['title'] ?? '' }}</h3><p>{{ $event['meta'] ?? '' }}</p><a class="home-btn" href="{{ $pageUrl($event['url'] ?? '') }}">{{ $event['button_label'] ?? config('cms.pages.home-v2.events.0.button_label') }}</a></article>
                 @endforeach
             </div>
-            <div class="home-heading" style="margin-top: 64px;"><h2>{{ $page['testimonials_heading'] ?? '' }}</h2><p>{{ $page['testimonials_text'] ?? '' }}</p></div>
-            <div class="testimonial-grid">
+            <div class="home-heading home-typo-testimonials" style="margin-top: 64px;"><h2>{{ $page['testimonials_heading'] ?? '' }}</h2><p>{{ $page['testimonials_text'] ?? '' }}</p></div>
+            <div class="testimonial-grid home-typo-testimonials">
                 @foreach($testimonials as $testimonial)
                     <article class="testimonial-card"><div class="stars">*****</div><p>{{ $testimonial['text'] ?? '' }}</p><strong>{{ $testimonial['author'] ?? '' }}</strong></article>
                 @endforeach
@@ -345,7 +364,7 @@
         </div>
     </section>
 
-    <section class="home-section">
+    <section class="home-section home-typo-requirements">
         <div class="home-wrap">
             <div class="home-heading"><h2>{{ $page['requirements_heading'] ?? '' }}</h2></div>
             <div class="requirement-grid">
@@ -356,7 +375,7 @@
         </div>
     </section>
 
-    <section class="home-section soft" id="ndis">
+    <section class="home-section soft home-typo-updates" id="ndis">
         <div class="home-wrap">
             <div class="home-heading"><h2>{{ $page['updates_heading'] ?? '' }}</h2></div>
             <div class="update-grid">
@@ -367,9 +386,9 @@
         </div>
     </section>
 
-    <section class="cta-band"><img src="{{ $assetUrl($page['cta_image'] ?? 'contact.jpg') }}" alt="Our Care participants and support workers outdoors"><div class="cta-content"><h2>{{ $page['cta_title'] ?? '' }}</h2><p>{{ $page['cta_text'] ?? '' }}</p><a class="home-btn" href="{{ $pageUrl($page['cta_url'] ?? '') }}">{{ $page['cta_button_label'] ?? '' }}</a></div></section>
+    <section class="cta-band home-typo-cta"><img src="{{ $assetUrl($page['cta_image'] ?? 'contact.jpg') }}" alt="Our Care participants and support workers outdoors"><div class="cta-content"><h2>{{ $page['cta_title'] ?? '' }}</h2><p>{{ $page['cta_text'] ?? '' }}</p><a class="home-btn" href="{{ $pageUrl($page['cta_url'] ?? '') }}">{{ $page['cta_button_label'] ?? '' }}</a></div></section>
 
-    <section class="home-section">
+    <section class="home-section home-typo-offices">
         <div class="home-wrap">
             <div class="home-heading"><h2>{{ $page['office_heading'] ?? '' }}</h2><p>{{ $page['office_text'] ?? '' }}</p><div class="location-pills">@foreach($locations as $location)<span>{{ $location }}</span>@endforeach</div></div>
             <div class="office-grid">
@@ -380,7 +399,7 @@
         </div>
     </section>
 
-    <section class="home-footer">
+    <section class="home-footer home-typo-footer">
         <div class="home-footer-grid">
             <div><img src="{{ $assetUrl($brand['logo'] ?? 'logo3.png') }}" alt="Our Care logo"><p>{{ $page['footer_text'] ?? '' }}</p></div>
             <div><h3>{{ $brand['footer_services_label'] ?? 'Services' }}</h3><a href="{{ url('/services-v2') }}">{{ $pageLinks['services-v2']['label'] ?? 'Services' }}</a>@foreach($serviceFooterLinks as $slug => $service)<a href="{{ route('services.detail.v2', $slug) }}">{{ $service['label'] ?? $service['title'] ?? $slug }}</a>@endforeach</div>

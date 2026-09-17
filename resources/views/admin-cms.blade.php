@@ -7,6 +7,7 @@
     $brand = $cms['brand'] ?? config('cms.brand');
     $palette = $cms['palette'] ?? config('cms.palette');
     $pages = $cms['pages'] ?? config('cms.pages');
+    $fontFamilyOptions = config('cms.font_families', []);
     $previewPaths = [
         'home-v2' => 'cms/home',
         'about-v2' => 'cms/about',
@@ -214,6 +215,8 @@
                 @php
                     $page = $pages[$slug] ?? config("cms.pages.$slug");
                     $sections = $page['sections'] ?? [];
+                    $typography = $page['typography'] ?? [];
+                    $typographySectionLabels = config("cms.typography_sections.$slug", config('cms.typography_sections.common', []));
                 @endphp
                 <form id="cms-reset-page-{{ $slug }}" method="POST" action="{{ url('/admin/cms/reset') }}" class="cms-reset-form" data-confirm-reset="Restore this page to the original defaults?" hidden>
                     @csrf
@@ -256,6 +259,39 @@
                                 Upload Hero Image
                                 <input type="file" name="hero_image_upload" accept="image/*">
                             </label>
+                        </div>
+                        <div class="cms-typography-panel">
+                            <div class="cms-subsection-title">
+                                <h3>Section Typography</h3>
+                                <span>Font family, size, and text color for this page.</span>
+                            </div>
+                            @foreach($typographySectionLabels as $sectionKey => $sectionLabel)
+                                @php
+                                    $sectionTypography = $typography[$sectionKey] ?? [];
+                                    $selectedFamily = old("typography_font_families.$sectionKey", $sectionTypography['font_family'] ?? 'default');
+                                    $selectedSize = old("typography_font_sizes.$sectionKey", $sectionTypography['font_size'] ?? '');
+                                    $selectedColor = old("typography_font_colors.$sectionKey", $sectionTypography['font_color'] ?? '');
+                                @endphp
+                                <div class="cms-typography-row">
+                                    <strong>{{ $sectionLabel }}</strong>
+                                    <label>
+                                        Font Family
+                                        <select name="typography_font_families[{{ $sectionKey }}]">
+                                            @foreach($fontFamilyOptions as $familyKey => $familyLabel)
+                                                <option value="{{ $familyKey }}" @selected($selectedFamily === $familyKey)>{{ $familyLabel }}</option>
+                                            @endforeach
+                                        </select>
+                                    </label>
+                                    <label>
+                                        Font Size
+                                        <input type="number" name="typography_font_sizes[{{ $sectionKey }}]" value="{{ $selectedSize }}" min="8" max="96" step="1" placeholder="Default">
+                                    </label>
+                                    <label>
+                                        Font Color
+                                        <input type="color" name="typography_font_colors[{{ $sectionKey }}]" value="{{ $selectedColor ?: ($palette['text'] ?? '#2c1746') }}">
+                                    </label>
+                                </div>
+                            @endforeach
                         </div>
                         <div class="cms-two">
                             <label>
@@ -702,6 +738,8 @@
                 @php
                     $items = $service['items'] ?? [];
                     $intro = implode("\n\n", $service['intro'] ?? []);
+                    $serviceTypography = $service['typography'] ?? [];
+                    $serviceTypographySectionLabels = config('cms.typography_sections.service', config('cms.typography_sections.common', []));
                 @endphp
                 <form id="cms-reset-service-{{ $slug }}" method="POST" action="{{ url('/admin/cms/reset') }}" class="cms-reset-form" data-confirm-reset="Restore this service to the original defaults?" hidden>
                     @csrf
@@ -748,6 +786,39 @@
                                 Upload Image
                                 <input type="file" name="image_upload" accept="image/*">
                             </label>
+                        </div>
+                        <div class="cms-typography-panel">
+                            <div class="cms-subsection-title">
+                                <h3>Section Typography</h3>
+                                <span>Font family, size, and text color for this service page.</span>
+                            </div>
+                            @foreach($serviceTypographySectionLabels as $sectionKey => $sectionLabel)
+                                @php
+                                    $sectionTypography = $serviceTypography[$sectionKey] ?? [];
+                                    $selectedFamily = old("typography_font_families.$sectionKey", $sectionTypography['font_family'] ?? 'default');
+                                    $selectedSize = old("typography_font_sizes.$sectionKey", $sectionTypography['font_size'] ?? '');
+                                    $selectedColor = old("typography_font_colors.$sectionKey", $sectionTypography['font_color'] ?? '');
+                                @endphp
+                                <div class="cms-typography-row">
+                                    <strong>{{ $sectionLabel }}</strong>
+                                    <label>
+                                        Font Family
+                                        <select name="typography_font_families[{{ $sectionKey }}]">
+                                            @foreach($fontFamilyOptions as $familyKey => $familyLabel)
+                                                <option value="{{ $familyKey }}" @selected($selectedFamily === $familyKey)>{{ $familyLabel }}</option>
+                                            @endforeach
+                                        </select>
+                                    </label>
+                                    <label>
+                                        Font Size
+                                        <input type="number" name="typography_font_sizes[{{ $sectionKey }}]" value="{{ $selectedSize }}" min="8" max="96" step="1" placeholder="Default">
+                                    </label>
+                                    <label>
+                                        Font Color
+                                        <input type="color" name="typography_font_colors[{{ $sectionKey }}]" value="{{ $selectedColor ?: ($palette['text'] ?? '#2c1746') }}">
+                                    </label>
+                                </div>
+                            @endforeach
                         </div>
                         <label>
                             Intro Paragraphs
@@ -821,8 +892,16 @@
     .cms-panel-header span { display: block; margin-top: 4px; color: #6b7280; font-size: 14px; }
     .cms-form { display: grid; gap: 16px; padding: 24px; }
     .cms-form label { display: grid; gap: 8px; color: #111827; font-weight: 700; font-size: 14px; }
-    .cms-form input[type="text"], .cms-form textarea, .cms-form input[type="file"] { width: 100%; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 8px; background: #f8fafc; color: #111827; font: inherit; font-weight: 500; }
+    .cms-form input[type="text"], .cms-form input[type="number"], .cms-form textarea, .cms-form select, .cms-form input[type="file"] { width: 100%; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 8px; background: #f8fafc; color: #111827; font: inherit; font-weight: 500; }
     .cms-form textarea { resize: vertical; line-height: 1.5; }
+    .cms-form input[type="color"] { width: 56px; height: 44px; padding: 2px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; }
+    .cms-subsection-title { display: flex; justify-content: space-between; gap: 12px; align-items: end; }
+    .cms-subsection-title h3 { margin: 0; color: #111827; font-size: 17px; }
+    .cms-subsection-title span { color: #6b7280; font-size: 12px; font-weight: 700; }
+    .cms-typography-panel { display: grid; gap: 12px; padding: 16px; border: 1px solid #dbeafe; border-radius: 8px; background: #f8fbff; }
+    .cms-typography-row { display: grid; grid-template-columns: minmax(130px, .9fr) minmax(170px, 1.3fr) minmax(100px, .7fr) minmax(78px, .45fr); gap: 12px; align-items: end; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; }
+    .cms-typography-row > strong { align-self: center; color: #111827; font-size: 13px; line-height: 1.3; }
+    .cms-typography-row label { gap: 6px; margin: 0; font-size: 12px; }
     .cms-colors label span { display: grid; grid-template-columns: 56px 1fr; gap: 10px; }
     .cms-colors input[type="color"] { width: 56px; height: 44px; padding: 2px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; }
     .cms-color-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
@@ -874,7 +953,7 @@
     .cms-image-preview span { overflow: hidden; color: #6b7280; font-size: 11px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .cms-image-preview.is-empty { display: none; }
     @media (max-width: 1100px) { .cms-builder-shell, .cms-home-layout { grid-template-columns: 1fr; } .cms-builder-sidebar, .cms-section-navigator { position: static; } .cms-section-navigator { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 1000px) { .cms-grid, .cms-two, .cms-color-grid, .cms-section-row, .cms-section-row.cms-wide-row { grid-template-columns: 1fr; } .cms-section-row.cms-wide-row textarea, .cms-section-row.cms-wide-row button { grid-column: auto; grid-row: auto; } .cms-section-row button { height: 40px; } }
+    @media (max-width: 1000px) { .cms-grid, .cms-two, .cms-color-grid, .cms-section-row, .cms-section-row.cms-wide-row, .cms-typography-row { grid-template-columns: 1fr; } .cms-section-row.cms-wide-row textarea, .cms-section-row.cms-wide-row button { grid-column: auto; grid-row: auto; } .cms-section-row button { height: 40px; } }
     @media (max-width: 700px) { .cms-dashboard-header, .cms-editor summary { align-items: stretch; flex-direction: column; } .cms-summary-actions { justify-content: flex-start; } }
 </style>
 

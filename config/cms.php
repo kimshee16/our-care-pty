@@ -28,6 +28,55 @@ return [
         'text' => '#2c1746',
     ],
 
+    'font_families' => [
+        'default' => 'Default theme font',
+        'inter' => 'Inter, Arial, sans-serif',
+        'arial' => 'Arial, Helvetica, sans-serif',
+        'poppins' => 'Poppins, Arial, sans-serif',
+        'montserrat' => 'Montserrat, Arial, sans-serif',
+        'georgia' => 'Georgia, serif',
+        'times' => '"Times New Roman", Times, serif',
+    ],
+
+    'typography_sections' => [
+        'common' => [
+            'hero' => 'Hero section',
+            'intro' => 'Intro section',
+            'sections' => 'Content cards / sections',
+            'cta' => 'CTA section',
+            'footer' => 'Footer section',
+        ],
+        'home-v2' => [
+            'hero' => 'Hero section',
+            'intro' => 'Intro section',
+            'pathways' => 'Pathway cards',
+            'trust' => 'Trust section',
+            'services' => 'Services section',
+            'events' => 'Events section',
+            'testimonials' => 'Testimonials section',
+            'requirements' => 'Pathways info section',
+            'updates' => 'Updates section',
+            'cta' => 'CTA section',
+            'offices' => 'Offices section',
+            'footer' => 'Footer section',
+        ],
+        'services-v2' => [
+            'hero' => 'Hero section',
+            'intro' => 'Intro section',
+            'sections' => 'Content cards / sections',
+            'service_grid' => 'Services grid',
+            'cta' => 'CTA section',
+            'footer' => 'Footer section',
+        ],
+        'service' => [
+            'hero' => 'Hero section',
+            'intro' => 'Intro section',
+            'sections' => 'Service item sections',
+            'cta' => 'CTA section',
+            'footer' => 'Footer section',
+        ],
+    ],
+
     'pages' => [
         'home-v2' => [
             'label' => 'Home',

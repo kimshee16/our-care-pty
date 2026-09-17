@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Support\CmsContent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class CmsController extends Controller
 {
@@ -186,6 +187,12 @@ class CmsController extends Controller
             'office_phones.*' => ['nullable', 'string', 'max:80'],
             'footer_text' => ['nullable', 'string', 'max:500'],
             'footer_credit' => ['nullable', 'string', 'max:160'],
+            'typography_font_families' => ['nullable', 'array'],
+            'typography_font_families.*' => ['nullable', Rule::in(array_keys(config('cms.font_families', [])))],
+            'typography_font_sizes' => ['nullable', 'array'],
+            'typography_font_sizes.*' => ['nullable', 'integer', 'min:8', 'max:96'],
+            'typography_font_colors' => ['nullable', 'array'],
+            'typography_font_colors.*' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
         $page = [
@@ -198,6 +205,7 @@ class CmsController extends Controller
             'intro_text' => trim((string) ($data['intro_text'] ?? '')),
             'service_grid_heading' => trim((string) ($data['service_grid_heading'] ?? '')),
             'sections' => $this->sectionRows($data['section_titles'] ?? [], $data['section_texts'] ?? []),
+            'typography' => $this->typographyRows($data),
         ];
 
         if ($slug === 'home-v2') {
@@ -229,6 +237,12 @@ class CmsController extends Controller
             'item_titles.*' => ['nullable', 'string', 'max:160'],
             'item_texts' => ['nullable', 'array'],
             'item_texts.*' => ['nullable', 'string', 'max:1200'],
+            'typography_font_families' => ['nullable', 'array'],
+            'typography_font_families.*' => ['nullable', Rule::in(array_keys(config('cms.font_families', [])))],
+            'typography_font_sizes' => ['nullable', 'array'],
+            'typography_font_sizes.*' => ['nullable', 'integer', 'min:8', 'max:96'],
+            'typography_font_colors' => ['nullable', 'array'],
+            'typography_font_colors.*' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
         $service = array_merge($current, [
@@ -242,6 +256,7 @@ class CmsController extends Controller
             'section_heading' => trim((string) ($data['section_heading'] ?? '')),
             'section_intro' => trim((string) ($data['section_intro'] ?? '')),
             'items' => $this->sectionRows($data['item_titles'] ?? [], $data['item_texts'] ?? []),
+            'typography' => $this->typographyRows($data),
         ]);
 
         CmsContent::set("services.$slug", $service);
@@ -353,6 +368,7 @@ class CmsController extends Controller
             'section_heading' => $service['section_heading'] ?? '',
             'section_intro' => $service['section_intro'] ?? '',
             'sections' => $service['items'] ?? [],
+            'typography' => $service['typography'] ?? [],
         ];
     }
 
@@ -405,6 +421,46 @@ class CmsController extends Controller
             }
 
             $rows[] = ['title' => $title, 'text' => $text];
+        }
+
+        return $rows;
+    }
+
+    private function typographyRows(array $data): array
+    {
+        $families = $data['typography_font_families'] ?? [];
+        $sizes = $data['typography_font_sizes'] ?? [];
+        $colors = $data['typography_font_colors'] ?? [];
+        $keys = array_unique(array_merge(array_keys($families), array_keys($sizes), array_keys($colors)));
+        $rows = [];
+
+        foreach ($keys as $key) {
+            $key = preg_replace('/[^a-z0-9_-]/i', '', (string) $key);
+
+            if ($key === '') {
+                continue;
+            }
+
+            $fontFamily = trim((string) ($families[$key] ?? 'default'));
+            $fontSize = trim((string) ($sizes[$key] ?? ''));
+            $fontColor = trim((string) ($colors[$key] ?? ''));
+            $row = [];
+
+            if ($fontFamily !== '' && $fontFamily !== 'default') {
+                $row['font_family'] = $fontFamily;
+            }
+
+            if ($fontSize !== '') {
+                $row['font_size'] = (int) $fontSize;
+            }
+
+            if ($fontColor !== '') {
+                $row['font_color'] = $fontColor;
+            }
+
+            if ($row !== []) {
+                $rows[$key] = $row;
+            }
         }
 
         return $rows;

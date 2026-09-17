@@ -14,6 +14,8 @@
 @section('styles')
     @php
         $palette = array_replace(config('cms.palette', []), $palette ?? \App\Support\CmsContent::get('palette', []));
+        $fontFamilies = config('cms.font_families', []);
+        $typography = $page['typography'] ?? [];
     @endphp
     :root {
         --home-plum: {{ $palette['primary'] ?? '#2d124b' }};
@@ -29,6 +31,23 @@
         --home-content: 1180px;
         --home-hero-content: 1544px;
     }
+
+    @foreach($typography as $sectionKey => $sectionTypography)
+        @php
+            $sectionClass = preg_replace('/[^a-z0-9_-]/i', '', (string) $sectionKey);
+            $familyKey = $sectionTypography['font_family'] ?? '';
+            $familyStack = $familyKey && $familyKey !== 'default' ? ($fontFamilies[$familyKey] ?? null) : null;
+            $fontSize = isset($sectionTypography['font_size']) ? (int) $sectionTypography['font_size'] : null;
+            $fontColor = $sectionTypography['font_color'] ?? null;
+        @endphp
+        @if($sectionClass && ($familyStack || $fontSize || $fontColor))
+            .cms-typo-{{ $sectionClass }} :where(h1,h2,h3,p,small,a,span,strong,li) {
+                @if($familyStack) font-family: {!! $familyStack !!} !important; @endif
+                @if($fontSize) font-size: {{ $fontSize }}px !important; @endif
+                @if($fontColor) color: {{ $fontColor }} !important; @endif
+            }
+        @endif
+    @endforeach
 
     body { background: var(--home-bg); }
     .topbar { min-height: 47px; padding: 8px max(18px, calc((100vw - var(--home-hero-content)) / 2)); border-bottom: 0; color: rgba(255,255,255,.9); background: var(--home-plum); font-size: 14px; line-height: 1.15; }
@@ -90,7 +109,7 @@
     .cms-page-cta p { margin: 0 auto 24px; color: rgba(255,255,255,.88); font-size: 14px; }
     .cms-page-footer { padding: 48px var(--pad) 28px; color: rgba(255,255,255,.78); background: var(--home-plum); }
     .cms-page-footer-grid { display: grid; grid-template-columns: minmax(220px,1.2fr) repeat(3,minmax(140px,1fr)); gap: 36px; width: min(100%,var(--home-content)); margin: 0 auto 32px; }
-    .cms-page-footer img { width: 170px; height: auto; padding: 8px 10px; border-radius: 8px; background: #fff; }
+    .cms-page-footer img { width: 170px; height: auto; padding: 0; border-radius: 0; background: transparent; object-fit: contain; }
     .cms-page-footer h3 { margin: 0 0 32px; color: #fff; font-size: 28px; font-weight: 900; line-height: 1.15; }
     .cms-page-footer a, .cms-page-footer p { display: block; margin: 0 0 24px; color: rgba(255,255,255,.92); font-size: 18px; font-weight: 700; line-height: 1.55; text-decoration: none; }
     .cms-page-footer-bottom { display: flex; justify-content: space-between; gap: 18px; width: min(100%,var(--home-content)); margin: 0 auto; padding-top: 28px; border-top: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.92); font-size: 18px; font-weight: 700; }
@@ -152,7 +171,7 @@
         $locations = $homePage['locations'] ?? [];
     @endphp
 
-    <section class="cms-page-hero">
+    <section class="cms-page-hero cms-typo-hero">
         <div class="cms-page-hero-grid">
             <div class="cms-page-hero-copy">
                 <span class="cms-page-hero-note">{{ $brand['tagline'] ?? 'Our Care' }}</span>
@@ -169,14 +188,14 @@
 
     <section class="cms-page-section">
         <div class="cms-page-wrap">
-            <div class="cms-page-heading">
+            <div class="cms-page-heading cms-typo-intro">
                 <small>{{ $page['label'] ?? 'Our Care' }}</small>
                 <h2>{{ $page['intro_title'] ?? $page['title'] ?? 'Our Care' }}</h2>
                 @if(empty($introParagraphs) && !empty($page['summary']))
                     <p>{{ $page['summary'] }}</p>
                 @endif
             </div>
-            <div class="cms-page-intro @if(empty($page['summary'])) solo @endif">
+            <div class="cms-page-intro cms-typo-intro @if(empty($page['summary'])) solo @endif">
                 <div class="cms-page-copy">
                     @foreach($introParagraphs as $paragraph)
                         <p>{{ $paragraph }}</p>
@@ -193,7 +212,7 @@
                 @endif
             </div>
             @if($renderSectionsWithIntro)
-                <div class="cms-page-section-grid cms-page-inline-grid">
+                <div class="cms-page-section-grid cms-page-inline-grid cms-typo-sections">
                     @foreach($sections as $section)
                         <article class="cms-page-card">
                             <h3>{{ $section['title'] ?? '' }}</h3>
@@ -206,7 +225,7 @@
     </section>
 
     @if(! $renderSectionsWithIntro && (!empty($page['section_heading']) || !empty($page['section_intro']) || count($sections)))
-        <section class="cms-page-section soft @if(empty($page['section_heading']) && empty($page['section_intro'])) flush @endif">
+        <section class="cms-page-section soft cms-typo-sections @if(empty($page['section_heading']) && empty($page['section_intro'])) flush @endif">
             <div class="cms-page-wrap">
                 @if(!empty($page['section_heading']) || !empty($page['section_intro']))
                     <div class="cms-page-heading">
@@ -233,7 +252,7 @@
     @endif
 
     @if(($pageSlug ?? '') === 'services-v2' && empty($serviceSlug))
-        <section class="cms-page-section warm">
+        <section class="cms-page-section warm cms-typo-service_grid">
             <div class="cms-page-wrap">
                 <div class="cms-page-heading">
                     <h2>{{ $page['service_grid_heading'] ?? config('cms.pages.services-v2.service_grid_heading') }}</h2>
@@ -251,7 +270,7 @@
         </section>
     @endif
 
-    <section class="cms-page-cta">
+    <section class="cms-page-cta cms-typo-cta">
         <img src="{{ $assetUrl($homePage['cta_image'] ?? config('cms.pages.home-v2.cta_image')) }}" alt="{{ $homePage['cta_title'] ?? config('cms.pages.home-v2.cta_title') }}">
         <div class="cms-page-cta-content">
             <h2>{{ $homePage['cta_title'] ?? 'Get started today' }}</h2>
@@ -260,7 +279,7 @@
         </div>
     </section>
 
-    <section class="cms-page-footer">
+    <section class="cms-page-footer cms-typo-footer">
         <div class="cms-page-footer-grid">
             <div>
                 <img src="{{ $assetUrl($brand['logo'] ?? 'logo3.png') }}" alt="{{ $brand['site_name'] ?? 'Our Care' }} logo">
