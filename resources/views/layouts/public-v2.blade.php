@@ -233,7 +233,7 @@
         }
 
         .footer__brand img {
-            width: 170px;
+            width: min(100%, 300px);
             height: auto;
             padding: 8px 10px;
             border-radius: 8px;

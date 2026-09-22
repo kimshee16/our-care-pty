@@ -109,7 +109,7 @@
     .cms-page-cta p { margin: 0 auto 24px; color: rgba(255,255,255,.88); font-size: 14px; }
     .cms-page-footer { padding: 48px var(--pad) 28px; color: rgba(255,255,255,.78); background: var(--home-plum); }
     .cms-page-footer-grid { display: grid; grid-template-columns: minmax(220px,1.2fr) repeat(3,minmax(140px,1fr)); gap: 36px; width: min(100%,var(--home-content)); margin: 0 auto 32px; }
-    .cms-page-footer img { width: 170px; height: auto; padding: 0; border-radius: 0; background: transparent; object-fit: contain; }
+    .cms-page-footer img { width: min(100%, 300px); height: auto; padding: 0; border-radius: 0; background: transparent; object-fit: contain; }
     .cms-page-footer h3 { margin: 0 0 32px; color: #fff; font-size: 28px; font-weight: 900; line-height: 1.15; }
     .cms-page-footer a, .cms-page-footer p { display: block; margin: 0 0 24px; color: rgba(255,255,255,.92); font-size: 18px; font-weight: 700; line-height: 1.55; text-decoration: none; }
     .cms-page-footer-bottom { display: flex; justify-content: space-between; gap: 18px; width: min(100%,var(--home-content)); margin: 0 auto; padding-top: 28px; border-top: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.92); font-size: 18px; font-weight: 700; }
