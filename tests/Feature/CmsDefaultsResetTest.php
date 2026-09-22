@@ -89,6 +89,27 @@ class CmsDefaultsResetTest extends TestCase
         $this->assertSame(config('cms.palette.primary'), CmsContent::get('palette.primary'));
     }
 
+    public function test_admin_can_configure_header_and_footer_logos_separately(): void
+    {
+        $admin = User::factory()->create(['accounttype' => 'admin']);
+
+        $this->withSession(['user' => $admin->toArray()])
+            ->post('/admin/cms/brand', [
+                'site_name' => 'Our Care Pty Ltd',
+                'logo_path' => 'cms/header-logo.png',
+                'footer_logo_path' => 'cms/footer-logo.png',
+            ])
+            ->assertRedirect('/admin/cms');
+
+        $this->assertSame('cms/header-logo.png', CmsContent::get('brand.logo'));
+        $this->assertSame('cms/footer-logo.png', CmsContent::get('brand.footer_logo'));
+
+        $this->get('/cms/home')
+            ->assertOk()
+            ->assertSee('cms/header-logo.png', false)
+            ->assertSee('cms/footer-logo.png', false);
+    }
+
     public function test_admin_cannot_reset_an_unknown_cms_key(): void
     {
         $admin = User::factory()->create(['accounttype' => 'admin']);

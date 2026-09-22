@@ -158,15 +158,26 @@
                     <input type="text" name="chat_aria_label" value="{{ old('chat_aria_label', $brand['chat_aria_label'] ?? '') }}">
                 </label>
                 <label>
-                    Current Logo Path
+                    Header Logo Path
                     <input type="text" name="logo_path" value="{{ old('logo_path', $brand['logo'] ?? '') }}">
                 </label>
                 <label>
-                    Upload New Logo
+                    Upload Header Logo
                     <input type="file" name="logo_upload" accept="image/*">
                 </label>
                 @if(!empty($brand['logo']))
-                    <img class="cms-preview-logo" src="{{ asset($brand['logo']) }}" alt="Current logo">
+                    <img class="cms-preview-logo" src="{{ asset($brand['logo']) }}" alt="Current header logo">
+                @endif
+                <label>
+                    Footer Logo Path
+                    <input type="text" name="footer_logo_path" value="{{ old('footer_logo_path', $brand['footer_logo'] ?? '') }}">
+                </label>
+                <label>
+                    Upload Footer Logo
+                    <input type="file" name="footer_logo_upload" accept="image/*">
+                </label>
+                @if(!empty($brand['footer_logo']))
+                    <img class="cms-preview-logo" src="{{ asset($brand['footer_logo']) }}" alt="Current footer logo">
                 @endif
                 <button type="submit" class="cms-button">Save Brand</button>
             </form>
@@ -961,6 +972,7 @@
     const cmsAssetBase = @json(rtrim(asset(''), '/') . '/');
     const cmsImagePathSelector = [
         'input[name="logo_path"]',
+        'input[name="footer_logo_path"]',
         'input[name="hero_image_path"]',
         'input[name="hero_slide_images[]"]',
         'input[name="pathway_images[]"]',
@@ -1044,6 +1056,7 @@
         const form = event.target.closest('form');
         const pairs = {
             logo_upload: 'input[name="logo_path"]',
+            footer_logo_upload: 'input[name="footer_logo_path"]',
             hero_image_upload: 'input[name="hero_image_path"]',
             image_upload: 'input[name="image_path"]'
         };

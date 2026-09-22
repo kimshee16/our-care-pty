@@ -60,6 +60,12 @@ Route::get('/dashboard', function () {
 Route::get('/client-dashboard', [App\Http\Controllers\ClientController::class, 'dashboard'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':client', \App\Http\Middleware\EnsureEmailIsVerified::class);
 
+Route::get('/profile', [App\Http\Controllers\ClientController::class, 'profile'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':client', \App\Http\Middleware\EnsureEmailIsVerified::class);
+
+Route::post('/profile', [App\Http\Controllers\ClientController::class, 'updateProfile'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':client', \App\Http\Middleware\EnsureEmailIsVerified::class);
+
 Route::get('/client/applications', [App\Http\Controllers\ClientController::class, 'applications'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin', \App\Http\Middleware\EnsureEmailIsVerified::class);
 
@@ -237,6 +243,11 @@ Route::post('/admin-registrations/{id}/approve', [App\Http\Controllers\AdminCont
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin');
 Route::post('/admin-registrations/{id}/reject', [App\Http\Controllers\AdminController::class, 'reject'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin');
+
+Route::post('/admin-registrations/{id}/impersonate-client', [App\Http\Controllers\AdminController::class, 'impersonateClient'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin');
+
+Route::post('/admin/impersonation/stop', [App\Http\Controllers\AdminController::class, 'stopImpersonating']);
     
 // Finalization page for client
 Route::get('/client/finalization', [App\Http\Controllers\ClientController::class, 'finalization'])

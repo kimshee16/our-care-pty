@@ -28,6 +28,10 @@ class EnsureEmailIsVerified
             return redirect('/login');
         }
 
+        if (session()->has('admin_impersonator')) {
+            return $next($request);
+        }
+
         // Check if email is verified
         if (!$user->verified && !$user->email_verified_at) {
             return redirect('/email-verification-pending')

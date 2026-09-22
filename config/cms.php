@@ -5,6 +5,7 @@ return [
         'site_name' => 'Our Care Pty Ltd',
         'tagline' => 'Your Care, Your Wellness',
         'logo' => 'logo3.png',
+        'footer_logo' => 'logo3.png',
         'phone' => '0425 795 830',
         'email' => 'admin@ourcarepty.com',
         'sign_in_label' => 'Sign in',

@@ -243,6 +243,7 @@
 @section('content')
     @php
         $brand = $brand ?? \App\Support\CmsContent::get('brand', config('cms.brand'));
+        $footerLogo = ($brand['footer_logo'] ?? null) ?: (($brand['logo'] ?? null) ?: config('cms.brand.footer_logo'));
         $page = array_replace_recursive(config('cms.pages.home-v2', []), $page ?? \App\Support\CmsContent::page('home-v2'));
         $services = $services ?? \App\Support\CmsContent::services();
         $pageLinks = \App\Support\CmsContent::get('pages', config('cms.pages', []));
@@ -401,7 +402,7 @@
 
     <section class="home-footer home-typo-footer">
         <div class="home-footer-grid">
-            <div><img src="{{ $assetUrl($brand['logo'] ?? 'logo3.png') }}" alt="Our Care logo"><p>{{ $page['footer_text'] ?? '' }}</p></div>
+            <div><img src="{{ $assetUrl($footerLogo) }}" alt="Our Care footer logo"><p>{{ $page['footer_text'] ?? '' }}</p></div>
             <div><h3>{{ $brand['footer_services_label'] ?? 'Services' }}</h3><a href="{{ url('/services-v2') }}">{{ $pageLinks['services-v2']['label'] ?? 'Services' }}</a>@foreach($serviceFooterLinks as $slug => $service)<a href="{{ route('services.detail.v2', $slug) }}">{{ $service['label'] ?? $service['title'] ?? $slug }}</a>@endforeach</div>
             <div><h3>{{ $brand['footer_quick_links_label'] ?? 'Quick Links' }}</h3><a href="{{ url('/about-v2') }}">{{ ($pageLinks['about-v2']['label'] ?? null) ?: 'About Us' }}</a><a href="{{ url('/intake-v2') }}">{{ ($pageLinks['intake-v2']['label'] ?? null) ?: 'Intake' }}</a><a href="{{ url('/onboarding-v2') }}">{{ ($pageLinks['onboarding-v2']['label'] ?? null) ?: 'Onboarding' }}</a><a href="{{ url('/contact-v2') }}">{{ ($pageLinks['contact-v2']['label'] ?? null) ?: 'Contact Us' }}</a></div>
             <div><h3>{{ $brand['footer_contact_label'] ?? 'Contact' }}</h3>@if(!empty($brand['phone']))<a href="{{ $phoneHref($brand['phone']) }}">{{ $brand['phone'] }}</a>@elseif(!empty($offices[0]['phone']))<a href="{{ $phoneHref($offices[0]['phone']) }}">{{ $offices[0]['phone'] }}</a>@endif @if(!empty($brand['email']))<a href="mailto:{{ $brand['email'] }}">{{ $brand['email'] }}</a>@elseif(!empty($offices[0]['email']))<a href="mailto:{{ $offices[0]['email'] }}">{{ $offices[0]['email'] }}</a>@endif<p>{{ implode(', ', $locations) }}</p></div>

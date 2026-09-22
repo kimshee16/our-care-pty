@@ -648,6 +648,10 @@
                             <i class="fas fa-award"></i>
                             Endorsed Workers
                         </a>
+                        <a href="{{ url('/profile') }}" class="nav-item {{ request()->is('profile') ? 'active' : '' }}">
+                            <i class="fas fa-user"></i>
+                            My Profile
+                        </a>
                     </div>
                 @endif
 
@@ -710,7 +714,18 @@
             @php
                 $sessionUser = session('user', []);
                 $showPendingApprovalWarning = ($sessionUser['accounttype'] ?? '') === 'client' && isset($sessionUser['approved']) && $sessionUser['approved'] == 0;
+                $adminImpersonator = session('admin_impersonator');
             @endphp
+
+            @if(is_array($adminImpersonator))
+                <div class="approval-alert" style="display: flex; justify-content: space-between; align-items: center; gap: 14px; margin: 20px 30px 0; padding: 16px 20px; border-radius: 12px; background: #eef2ff; border: 1px solid #c7d2fe; color: #312e81; font-weight: 700;">
+                    <span>You are signed in as {{ $sessionUser['fullname'] ?? 'this client' }}.</span>
+                    <form method="POST" action="{{ url('/admin/impersonation/stop') }}" style="margin: 0;">
+                        @csrf
+                        <button type="submit" style="padding: 9px 14px; border: 0; border-radius: 8px; background: #4f46e5; color: #fff; font-weight: 800; cursor: pointer;">Return to admin</button>
+                    </form>
+                </div>
+            @endif
 
             @if($showPendingApprovalWarning)
                 <div class="approval-alert" style="margin: 20px 30px 0; padding: 16px 20px; border-radius: 12px; background: #fff4e5; border: 1px solid #ffddb3; color: #8a6d3b; font-weight: 600;">

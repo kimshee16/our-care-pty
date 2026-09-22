@@ -185,4 +185,40 @@ class AdminController extends Controller
             'approved_by_name' => $approvedByName,
         ]);
     }
+
+    public function impersonateClient($id)
+    {
+        $adminSession = Session::get('user');
+
+        if (! is_array($adminSession) || ($adminSession['accounttype'] ?? null) !== 'admin') {
+            return redirect('/login');
+        }
+
+        $clientUser = User::where('accounttype', 'client')->findOrFail($id);
+
+        Session::put('admin_impersonator', $adminSession);
+        Session::put('user', [
+            'id' => $clientUser->id,
+            'fullname' => $clientUser->fullname,
+            'email' => $clientUser->email,
+            'accounttype' => $clientUser->accounttype,
+            'approved' => $clientUser->approved,
+        ]);
+
+        return redirect('/profile')->with('status', 'You are now signed in as ' . $clientUser->fullname . '.');
+    }
+
+    public function stopImpersonating()
+    {
+        $adminSession = Session::get('admin_impersonator');
+
+        if (! is_array($adminSession) || ($adminSession['accounttype'] ?? null) !== 'admin') {
+            return redirect('/login');
+        }
+
+        Session::put('user', $adminSession);
+        Session::forget('admin_impersonator');
+
+        return redirect('/admin-registrations')->with('status', 'Returned to your admin account.');
+    }
 }

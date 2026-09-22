@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use App\Models\Client;
 use App\Models\User;
 use App\Models\JobPosting;
@@ -154,6 +155,62 @@ class ClientController extends Controller
         $endorsedWorkers = Endorsement::whereIn('job_post_id', $jobPostingIds)->count();
 
         return view('client-dashboard', compact('activeJobs', 'applications', 'interviews', 'endorsedWorkers'));
+    }
+
+    public function profile()
+    {
+        $user = $this->getUserModel();
+
+        if (!$user || $user->accounttype !== 'client') {
+            return redirect('/login');
+        }
+
+        $client = $user->client;
+
+        return view('client-profile', compact('user', 'client'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $this->getUserModel();
+
+        if (!$user || $user->accounttype !== 'client') {
+            return redirect('/login');
+        }
+
+        $data = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'alias' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['required', 'string', 'max:20'],
+            'date_of_birth' => ['required', 'date'],
+            'address' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'state' => ['required', 'string', 'max:255'],
+            'zip_code' => ['required', 'string', 'max:20'],
+            'country' => ['required', 'string', 'max:255'],
+        ]);
+
+        $client = $user->client ?: new Client();
+        $client->fill($data);
+        $client->save();
+
+        $user->fullname = trim($data['first_name'] . ' ' . $data['last_name']);
+        $user->email = $data['email'];
+        $user->phone = $data['phone'];
+        $user->record_id = $client->id;
+        $user->save();
+
+        session()->put('user', array_merge(session('user', []), [
+            'id' => $user->id,
+            'fullname' => $user->fullname,
+            'email' => $user->email,
+            'accounttype' => $user->accounttype,
+            'approved' => $user->approved,
+        ]));
+
+        return redirect('/profile')->with('status', 'Client profile updated successfully.');
     }
 
     /**

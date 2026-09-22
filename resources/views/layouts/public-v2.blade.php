@@ -384,6 +384,7 @@
         $activeService = $activeService ?? null;
         $brand = \App\Support\CmsContent::get('brand', config('cms.brand'));
         $brandName = $brand['site_name'] ?? config('cms.brand.site_name');
+        $footerLogo = ($brand['footer_logo'] ?? null) ?: (($brand['logo'] ?? null) ?: config('cms.brand.footer_logo'));
         $cmsPages = \App\Support\CmsContent::get('pages', config('cms.pages', []));
         $homePage = \App\Support\CmsContent::page('home-v2');
         $footerServiceLinks = array_slice(\App\Support\CmsContent::services(), 0, 3, true);
@@ -445,7 +446,7 @@
     <footer class="footer" id="contact">
         <div class="footer__grid">
             <div class="footer__brand">
-                <img src="{{ asset($brand['logo'] ?? config('cms.brand.logo')) }}" alt="{{ $brandName }} logo">
+                <img src="{{ asset($footerLogo) }}" alt="{{ $brandName }} footer logo">
                 <p>{{ $homePage['footer_text'] ?? config('cms.pages.home-v2.footer_text') }}</p>
             </div>
             <div>

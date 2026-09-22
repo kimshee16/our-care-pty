@@ -8,6 +8,12 @@
         <h1>Registration Management</h1>
     </div>
 
+    @if(session('status'))
+        <div style="margin-bottom: 20px; padding: 14px 16px; border-radius: 8px; background: #ecfdf5; color: #047857; border: 1px solid #bbf7d0; font-weight: 700;">
+            {{ session('status') }}
+        </div>
+    @endif
+
     <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
         <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center;">
             <h3 style="color: #666; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase;">Total Pending</h3>
@@ -148,6 +154,15 @@
 
     .btn-view:hover {
         background: #5639a8;
+    }
+
+    .btn-client-login {
+        background: #0f766e;
+        color: white;
+    }
+
+    .btn-client-login:hover {
+        background: #115e59;
     }
 
     .btn-approve {
@@ -307,6 +322,7 @@
                 <td>
                     <div class="action-buttons">
                         <button class="btn-small btn-view" onclick="viewDetails(${reg.id})">View</button>
+                        ${reg.type === 'Client' ? `<button class="btn-small btn-client-login" onclick="signInAsClient(${reg.id})">Sign in as client</button>` : ''}
                         ${reg.status === 'pending' ? `
                             <button class="btn-small btn-approve" onclick="approveDirectly(${reg.id})">Approve</button>
                             <button class="btn-small btn-reject" onclick="rejectDirectly(${reg.id})">Reject</button>
@@ -639,6 +655,20 @@
         });
     }
 
+    function signInAsClient(id) {
+        const form = document.createElement('form');
+        const token = document.createElement('input');
+
+        form.method = 'POST';
+        form.action = `/admin-registrations/${id}/impersonate-client`;
+        token.type = 'hidden';
+        token.name = '_token';
+        token.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        form.appendChild(token);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
     // Close modal when clicking outside
     window.onclick = function(event) {
         const modal = document.getElementById('detailModal');
@@ -652,6 +682,4 @@
     renderTable(registrations);
 </script>
 @endsection
-
-
 

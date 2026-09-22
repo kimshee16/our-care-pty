@@ -149,6 +149,7 @@
 @section('content')
     @php
         $brand = $brand ?? \App\Support\CmsContent::get('brand', config('cms.brand'));
+        $footerLogo = ($brand['footer_logo'] ?? null) ?: (($brand['logo'] ?? null) ?: config('cms.brand.footer_logo'));
         $pages = $pages ?? \App\Support\CmsContent::get('pages', config('cms.pages', []));
         $services = $services ?? \App\Support\CmsContent::services();
         $assetUrl = function (?string $path): string {
@@ -282,7 +283,7 @@
     <section class="cms-page-footer cms-typo-footer">
         <div class="cms-page-footer-grid">
             <div>
-                <img src="{{ $assetUrl($brand['logo'] ?? 'logo3.png') }}" alt="{{ $brand['site_name'] ?? 'Our Care' }} logo">
+                <img src="{{ $assetUrl($footerLogo) }}" alt="{{ $brand['site_name'] ?? 'Our Care' }} footer logo">
                 <p>{{ $homePage['footer_text'] ?? config('cms.pages.home-v2.footer_text') }}</p>
             </div>
             <div>
