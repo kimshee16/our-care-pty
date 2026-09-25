@@ -579,9 +579,9 @@
                 @endphp
 
                 <!-- Common Navigation -->
-                @if($accountType !== 'healthcare_worker')
+                @if($accountType === 'client')
                     <div class="nav-section">
-                        <a href="{{ $accountType === 'client' ? url('/client-dashboard') : url('/dashboard') }}" class="nav-item {{ ($accountType === 'client' && request()->is('client-dashboard')) || ($accountType !== 'client' && request()->is('dashboard')) ? 'active' : '' }}">
+                        <a href="{{ url('/client-dashboard') }}" class="nav-item {{ request()->is('client-dashboard') ? 'active' : '' }}">
                             <i class="fas fa-tachometer-alt"></i>
                             Dashboard
                         </a>

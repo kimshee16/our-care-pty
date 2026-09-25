@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -106,23 +105,10 @@ class ClientController extends Controller
             'password' => Hash::make($data['password']),
             'accounttype' => 'client',
             'record_id' => $client->id,
-            'verified' => false,
             'approved' => false,
         ]);
 
-        // send verification email
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->id]
-        );
-
-        Mail::send('emails.verify', ['url' => $verificationUrl], function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('Verify your Our Care Pty Ltd email address');
-        });
-
-        return redirect('/login')->with('status', 'Registration successful! Please check your email to verify your account.');
+        return redirect('/login')->with('status', 'Registration successful! Please wait for admin approval.');
     }
 
     /**

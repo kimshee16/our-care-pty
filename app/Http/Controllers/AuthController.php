@@ -35,14 +35,6 @@ class AuthController extends Controller
             return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
         }
 
-        // Check if email is verified for client and healthcare worker accounts
-        if (($user->accounttype === 'client' || $user->accounttype === 'healthcare_worker') && 
-            !$user->verified && !$user->email_verified_at) {
-            return redirect('/email-verification-pending')
-                ->with('status', 'Your account has been created successfully. Please verify your email address to proceed.')
-                ->with('email', $user->email);
-        }
-                    
         // store essential data in session
         Session::put('user', [
             'id' => $user->id,

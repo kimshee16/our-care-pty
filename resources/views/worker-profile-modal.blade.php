@@ -18,7 +18,6 @@
                 {{ ucfirst(optional($worker)->profession ?? 'Healthcare Professional') }}@if(optional($worker)->specialization) • {{ optional($worker)->specialization }}@endif
             </p>
             <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                <span style="padding: 10px 16px; border-radius: 999px; background: #eef2ff; color: #1d4ed8; font-weight: 600; font-size: 13px;">{{ $workerUser->verified ? 'Verified' : 'Not Verified' }}</span>
                 <span style="padding: 10px 16px; border-radius: 999px; background: {{ $workerUser->approved == 1 ? '#ecfdf5' : '#fef3c7' }}; color: {{ $workerUser->approved == 1 ? '#047857' : '#92400e' }}; font-weight: 600; font-size: 13px;">{{ $workerUser->approved == 1 ? 'Approved' : 'Awaiting Approval' }}</span>
             </div>
         </div>
