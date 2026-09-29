@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use App\Models\Client;
 use App\Models\User;
 use App\Models\JobPosting;
@@ -67,7 +69,7 @@ class ClientController extends Controller
 
     public function register(Request $request)
     {
-        $data = $request->validate([
+        $rules = [
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'alias' => 'nullable|string|max:255',
@@ -80,7 +82,31 @@ class ClientController extends Controller
             'zipcode' => 'required|string|max:20',
             'country' => 'required|string|max:255',
             'password' => 'required|string|min:6|confirmed',
+            'privacy_rules_disclaimer' => 'accepted',
+        ];
+
+        if (config('services.recaptcha.secret_key')) {
+            $rules['g-recaptcha-response'] = 'required|string';
+        }
+
+        $data = $request->validate($rules, [
+            'privacy_rules_disclaimer.accepted' => 'Please acknowledge the Privacy Rules Disclaimer.',
+            'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification.',
         ]);
+
+        if (config('services.recaptcha.secret_key')) {
+            $recaptchaResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => config('services.recaptcha.secret_key'),
+                'response' => $request->input('g-recaptcha-response'),
+                'remoteip' => $request->ip(),
+            ]);
+
+            if (! $recaptchaResponse->json('success')) {
+                throw ValidationException::withMessages([
+                    'g-recaptcha-response' => 'The reCAPTCHA verification failed. Please try again.',
+                ]);
+            }
+        }
 
         // create client profile
         $client = Client::create([

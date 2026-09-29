@@ -62,6 +62,67 @@
             font-family: inherit;
         }
 
+        .password-field {
+            position: relative;
+        }
+
+        .password-field input {
+            padding-right: 44px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            color: #555;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+        }
+
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .password-toggle .eye-closed {
+            display: none;
+        }
+
+        .password-toggle.is-visible .eye-open {
+            display: none;
+        }
+
+        .password-toggle.is-visible .eye-closed {
+            display: block;
+        }
+
+        .form-group .checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: #444;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin-top: 3px;
+            flex: 0 0 auto;
+        }
+
+        .recaptcha-group {
+            overflow-x: auto;
+        }
+
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
@@ -130,6 +191,9 @@
     </style>
 </head>
 <body>
+    @php
+        $recaptchaSiteKey = config('services.recaptcha.site_key');
+    @endphp
     <div class="register-container">
         <div class="register-content">
             <a href="{{ url('/signup-option') }}" class="back-link">← Back</a>
@@ -197,7 +261,7 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="zipcode">Zip Code *</label>
+                        <label for="zipcode">Post Code *</label>
                         <input type="text" id="zipcode" name="zipcode" required>
                     </div>
                     <div class="form-group">
@@ -208,13 +272,79 @@
 
                 <div class="form-group">
                     <label for="password">Password *</label>
-                    <input type="password" id="password" name="password" required>
+                    <div class="password-field">
+                        <input type="password" id="password" name="password" required>
+                        <button type="button" class="password-toggle" aria-label="Show password" aria-controls="password" data-target="password">
+                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M9.9 4.2A10.6 10.6 0 0 1 12 4c6.5 0 10 8 10 8a18.4 18.4 0 0 1-3.3 4.7"></path>
+                                <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9"></path>
+                                <path d="M3 3l18 18"></path>
+                                <path d="M6.6 6.6A17.8 17.8 0 0 0 2 12s3.5 8 10 8a9.9 9.9 0 0 0 4.8-1.3"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="password_confirmation">Confirm Password *</label>
-                    <input type="password" id="password_confirmation" name="password_confirmation" required>
+                    <div class="password-field">
+                        <input type="password" id="password_confirmation" name="password_confirmation" required>
+                        <button type="button" class="password-toggle" aria-label="Show confirm password" aria-controls="password_confirmation" data-target="password_confirmation">
+                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M9.9 4.2A10.6 10.6 0 0 1 12 4c6.5 0 10 8 10 8a18.4 18.4 0 0 1-3.3 4.7"></path>
+                                <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9"></path>
+                                <path d="M3 3l18 18"></path>
+                                <path d="M6.6 6.6A17.8 17.8 0 0 0 2 12s3.5 8 10 8a9.9 9.9 0 0 0 4.8-1.3"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label" for="privacy_rules_disclaimer">
+                        <input type="checkbox" id="privacy_rules_disclaimer" name="privacy_rules_disclaimer" value="1" {{ old('privacy_rules_disclaimer') ? 'checked' : '' }} required>
+                        <span>Privacy Rules Disclaimer * - I acknowledge that the information I provide will be handled according to Our Care's privacy rules and used to process my registration.</span>
+                    </label>
+                </div>
+
+                @if($recaptchaSiteKey)
+                    <div class="form-group recaptcha-group">
+                        <div class="g-recaptcha" data-sitekey="{{ $recaptchaSiteKey }}"></div>
+                    </div>
+                @endif
+
+                @error('g-recaptcha-response')
+                    <div style="color:red;margin-bottom:15px;text-align:left;font-size:13px;">{{ $message }}</div>
+                @enderror
+
+                @error('privacy_rules_disclaimer')
+                    <div style="color:red;margin-bottom:15px;text-align:left;font-size:13px;">{{ $message }}</div>
+                @enderror
+
+                @if($recaptchaSiteKey)
+                    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                @endif
+
+                <script>
+                    document.querySelectorAll('.password-toggle').forEach(function (button) {
+                        button.addEventListener('click', function () {
+                            var input = document.getElementById(button.dataset.target);
+                            var isPassword = input.type === 'password';
+
+                            input.type = isPassword ? 'text' : 'password';
+                            button.classList.toggle('is-visible', isPassword);
+                            button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+                        });
+                    });
+                </script>
 
                 <button type="submit" class="register-btn">Create Account</button>
             </form>
