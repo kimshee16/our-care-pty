@@ -63,6 +63,16 @@
             font-family: inherit;
         }
 
+        .form-group input[type="checkbox"],
+        .employment-row input[type="checkbox"] {
+            width: auto;
+            min-width: 16px;
+            height: 16px;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+        }
+
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
@@ -79,6 +89,46 @@
 
         .form-row .form-group {
             margin-bottom: 0;
+        }
+
+        .resume-signup-panel {
+            margin-bottom: 24px;
+            padding: 16px;
+            border: 2px solid #674cbf;
+            border-radius: 8px;
+            background: #f8f6ff;
+            text-align: left;
+        }
+
+        .resume-signup-panel h2 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .resume-signup-panel .form-group {
+            margin-bottom: 12px;
+        }
+
+        .resume-analyze-btn {
+            padding: 9px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #674cbf;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .resume-analyze-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        .resume-status {
+            min-height: 18px;
+            color: #555;
+            font-size: 12px;
         }
 
         .register-btn {
@@ -155,8 +205,20 @@
                 </div>
             @endif
 
-            <form id="healthcareRegisterForm" method="POST" action="{{ url('/healthcare-register') }}">
+            <form id="healthcareRegisterForm" method="POST" action="{{ url('/healthcare-register') }}" enctype="multipart/form-data">
                 @csrf
+                <div class="resume-signup-panel">
+                    <h2>Sign up using resume PDF</h2>
+                    <div class="form-group">
+                        <label for="resume">Upload Resume PDF</label>
+                        <input type="file" id="resume" name="resume" accept="application/pdf,.pdf">
+                        <div style="font-size:12px; color:#666; margin-top:6px;">PDF only, up to 5 MB.</div>
+                        @error('resume')<div style="color:red; margin-top:6px; font-size:12px;">{{ $message }}</div>@enderror
+                    </div>
+                    <button type="button" id="analyzeResumeBtn" class="resume-analyze-btn" disabled>Analyze resume and fill form</button>
+                    <div id="resumeParseStatus" class="resume-status" role="status" aria-live="polite"></div>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="firstName">First Name *</label>
@@ -256,7 +318,7 @@
                             <textarea name="employment_history[0][summary]" placeholder="Summary" style="grid-column: 1 / -1; padding:10px; border:1px solid #ddd; border-radius:4px;">{{ old('employment_history.0.summary') }}</textarea>
                             <input type="text" name="employment_history[0][year_started]" placeholder="Year Started (YYYY)" value="{{ old('employment_history.0.year_started') }}" style="padding:10px;border:1px solid #ddd;border-radius:4px;">
                             <input type="text" name="employment_history[0][year_ended]" placeholder="Year Ended (YYYY or blank)" value="{{ old('employment_history.0.year_ended') }}" style="padding:10px;border:1px solid #ddd;border-radius:4px;">
-                            <label style="display:flex; align-items:center; gap:8px; grid-column:1 / -1;"><input type="checkbox" name="employment_history[0][is_currently_employed]" value="1" {{ old('employment_history.0.is_currently_employed') ? 'checked' : '' }}> Currently employed</label>
+                            <label style="display:inline-flex; align-items:center; gap:8px; grid-column:1 / -1; width: fit-content; color:#333; font-weight:500;"><input type="checkbox" name="employment_history[0][is_currently_employed]" value="1" {{ old('employment_history.0.is_currently_employed') ? 'checked' : '' }}> Currently employed</label>
                         </div>
                     </div>
                     <button type="button" id="addEmploymentBtn" style="padding:10px 14px; border:none; background:#28a745; color:white; border-radius:4px; cursor:pointer;">Add Another Job</button>
@@ -286,6 +348,9 @@
             const skillFields = document.getElementById('skillFields');
             const healthcareSkillsList = document.getElementById('healthcareSkillsList');
             const healthcareRegisterForm = document.getElementById('healthcareRegisterForm');
+            const resumeInput = document.getElementById('resume');
+            const analyzeResumeBtn = document.getElementById('analyzeResumeBtn');
+            const resumeParseStatus = document.getElementById('resumeParseStatus');
             const allowedSkills = new Set(
                 Array.from(healthcareSkillsList.options).map(option => option.value.trim())
             );
@@ -341,6 +406,126 @@
                 return row;
             }
 
+            function setResumeStatus(message, isError = false) {
+                resumeParseStatus.textContent = message || '';
+                resumeParseStatus.style.color = isError ? '#b91c1c' : '#555';
+            }
+
+            function fillField(id, value) {
+                if (value === undefined || value === null || value === '') {
+                    return false;
+                }
+
+                const input = document.getElementById(id);
+
+                if (!input || input.value.trim() !== '') {
+                    return false;
+                }
+
+                input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+
+                return true;
+            }
+
+            function fillSkills(skills) {
+                if (!Array.isArray(skills) || skills.length === 0) {
+                    return 0;
+                }
+
+                let filled = 0;
+
+                skills.forEach(function (skill) {
+                    if (!allowedSkills.has(skill)) {
+                        return;
+                    }
+
+                    let target = Array.from(skillFields.querySelectorAll('input[name="skills[]"]'))
+                        .find(input => input.value.trim() === '');
+
+                    if (!target) {
+                        const row = createSkillRow();
+                        skillFields.appendChild(row);
+                        target = row.querySelector('input[name="skills[]"]');
+                    }
+
+                    target.value = skill;
+                    target.dispatchEvent(new Event('input', { bubbles: true }));
+                    filled++;
+                });
+
+                return filled;
+            }
+
+            function applyResumeFields(fields) {
+                let filled = 0;
+
+                filled += fillField('firstName', fields.firstName) ? 1 : 0;
+                filled += fillField('lastName', fields.lastName) ? 1 : 0;
+                filled += fillField('email', fields.email) ? 1 : 0;
+                filled += fillField('phone', fields.phone) ? 1 : 0;
+                filled += fillField('profession', fields.profession) ? 1 : 0;
+                filled += fillField('specialization', fields.specialization) ? 1 : 0;
+                filled += fillField('licenseNumber', fields.licenseNumber) ? 1 : 0;
+                filled += fillField('experience', fields.experience) ? 1 : 0;
+                filled += fillField('facility', fields.facility) ? 1 : 0;
+                filled += fillField('healthcareLocationInput', fields.location) ? 1 : 0;
+                filled += fillField('credentials', fields.credentials) ? 1 : 0;
+                filled += fillSkills(fields.skills);
+
+                return filled;
+            }
+
+            async function analyzeResume() {
+                const file = resumeInput.files && resumeInput.files[0];
+
+                if (!file) {
+                    setResumeStatus('Choose a PDF resume first.', true);
+                    return;
+                }
+
+                if (file.type && file.type !== 'application/pdf') {
+                    setResumeStatus('Please choose a PDF resume.', true);
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('resume', file);
+                formData.append('_token', healthcareRegisterForm.querySelector('input[name="_token"]').value);
+
+                analyzeResumeBtn.disabled = true;
+                setResumeStatus('Analyzing resume...');
+
+                try {
+                    const response = await fetch('{{ url('/healthcare-register/parse-resume') }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        setResumeStatus(data.message || 'Resume could not be analyzed. Please complete the form manually.', true);
+                        return;
+                    }
+
+                    const filled = applyResumeFields(data.fields || {});
+                    const message = filled > 0
+                        ? `${filled} field${filled === 1 ? '' : 's'} filled from your resume. Please review before submitting.`
+                        : (data.message || 'No clear fields were found. Please complete the form manually.');
+
+                    setResumeStatus(message, filled === 0);
+                } catch (error) {
+                    setResumeStatus('Resume could not be analyzed. Please complete the form manually.', true);
+                } finally {
+                    analyzeResumeBtn.disabled = !resumeInput.files.length;
+                }
+            }
+
             skillFields.addEventListener('click', function(e){
                 if (e.target.classList.contains('add-skill-btn')) {
                     skillFields.appendChild(createSkillRow());
@@ -369,6 +554,18 @@
                 }
             });
 
+            resumeInput.addEventListener('change', function () {
+                analyzeResumeBtn.disabled = !resumeInput.files.length;
+
+                if (resumeInput.files.length) {
+                    analyzeResume();
+                } else {
+                    setResumeStatus('');
+                }
+            });
+
+            analyzeResumeBtn.addEventListener('click', analyzeResume);
+
             const employmentHistoryFields = document.getElementById('employmentHistoryFields');
             const addEmploymentBtn = document.getElementById('addEmploymentBtn');
             let historyIndex = employmentHistoryFields.querySelectorAll('.employment-row').length;
@@ -383,7 +580,7 @@
                     <textarea name="employment_history[${historyIndex}][summary]" placeholder="Summary" style="grid-column: 1 / -1; padding:10px; border:1px solid #ddd; border-radius:4px;"></textarea>
                     <input type="text" name="employment_history[${historyIndex}][year_started]" placeholder="Year Started (YYYY)" style="padding:10px;border:1px solid #ddd;border-radius:4px;">
                     <input type="text" name="employment_history[${historyIndex}][year_ended]" placeholder="Year Ended (YYYY or blank)" style="padding:10px;border:1px solid #ddd;border-radius:4px;">
-                    <label style="display:flex; align-items:center; gap:8px; grid-column:1 / -1;"><input type="checkbox" name="employment_history[${historyIndex}][is_currently_employed]" value="1"> Currently employed</label>
+                    <label style="display:inline-flex; align-items:center; gap:8px; grid-column:1 / -1; width: fit-content; color:#333; font-weight:500;"><input type="checkbox" name="employment_history[${historyIndex}][is_currently_employed]" value="1"> Currently employed</label>
                     <button type="button" class="remove-employment-btn" style="grid-column:1 / -1; padding:10px 14px; border:none; background:#dc3545; color:white; border-radius:4px; cursor:pointer;">Remove</button>
                 `;
                 employmentHistoryFields.appendChild(row);

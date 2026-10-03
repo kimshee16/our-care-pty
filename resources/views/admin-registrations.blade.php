@@ -460,6 +460,14 @@
                     <div class="detail-value">${selectedRegistration.credentials}</div>
                 </div>
                 <div class="detail-row">
+                    <div class="detail-label">Resume</div>
+                    <div class="detail-value">${
+                        selectedRegistration.resume_url
+                            ? `<a href="${escapeHtml(selectedRegistration.resume_url)}" target="_blank" rel="noopener" style="color: #674cbf; font-weight: 700;">Download PDF resume</a>`
+                            : 'No resume uploaded'
+                    }</div>
+                </div>
+                <div class="detail-row">
                     <div class="detail-label">Status</div>
                     <div class="detail-value"><span class="status-badge status-${selectedRegistration.status}">${selectedRegistration.status}</span></div>
                 </div>

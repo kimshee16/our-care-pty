@@ -11,12 +11,14 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Smalot\PdfParser\Parser as PdfParser;
 use App\Models\Application;
 use App\Models\HealthcareWorker;
 use App\Models\JobPosting;
 use App\Models\NdisRequirementCompleted;
 use App\Models\NdisRequirementParameter;
 use App\Models\User;
+use App\Support\ResumeDataExtractor;
 
 class HealthcareController extends Controller
 {
@@ -34,6 +36,34 @@ class HealthcareController extends Controller
     public function showRegistrationForm()
     {
         return view('healthcare-register');
+    }
+
+    public function parseResume(Request $request, ResumeDataExtractor $extractor): JsonResponse
+    {
+        $validated = $request->validate([
+            'resume' => 'required|file|max:5120|mimes:pdf',
+        ]);
+
+        try {
+            $text = (new PdfParser())
+                ->parseFile($validated['resume']->getRealPath())
+                ->getText();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => 'We could not read text from this PDF. You can still upload it and complete the form manually.',
+            ], 422);
+        }
+
+        $fields = $extractor->extract($text, config('healthcare_skills.options', []));
+
+        return response()->json([
+            'fields' => $fields,
+            'message' => empty($fields)
+                ? 'No clear profile fields were found. You can still upload this resume and complete the form manually.'
+                : 'Resume details were found. Please review the populated fields before creating the account.',
+        ]);
     }
 
     /**
@@ -96,8 +126,14 @@ class HealthcareController extends Controller
             'employment_history.*.year_started' => 'nullable|digits:4|integer',
             'employment_history.*.year_ended' => 'nullable|digits:4|integer',
             'employment_history.*.is_currently_employed' => 'nullable|boolean',
+            'resume' => 'nullable|file|max:5120|mimes:pdf',
             'password' => 'required|string|min:6|confirmed',
         ]);
+
+        $resumePath = null;
+        if ($request->hasFile('resume') && $request->file('resume')->isValid()) {
+            $resumePath = $request->file('resume')->store('resumes', 'public');
+        }
 
         // create user account first
         $user = User::create([
@@ -120,6 +156,7 @@ class HealthcareController extends Controller
             'facility_address' => $data['facilityAddress'] ?? null,
             'location' => $data['location'] ?? null,
             'credentials' => $data['credentials'] ?? null,
+            'resume_path' => $resumePath,
         ]);
 
         if (!empty($data['skills'])) {

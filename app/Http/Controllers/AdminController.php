@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Client;
 use App\Models\HealthcareWorker;
@@ -60,6 +61,7 @@ class AdminController extends Controller
                     'facilityAddress' => $hw->facility_address ?? 'N/A',
                     'location' => $hw->location ?? 'N/A',
                     'credentials' => $hw->credentials ?? 'N/A',
+                    'resume_url' => $hw->resume_path ? url('/admin-registrations/' . $user->id . '/resume') : null,
                     'skills' => $hw->skills->pluck('skill')->toArray(),
                     'employment_history' => $hw->employmentHistory->map(function ($eh) {
                         return [
@@ -184,6 +186,28 @@ class AdminController extends Controller
             'approved_by' => $user->approved_by,
             'approved_by_name' => $approvedByName,
         ]);
+    }
+
+    public function downloadResume($id)
+    {
+        $user = User::with('healthcareWorker')->findOrFail($id);
+
+        if ($user->accounttype !== 'healthcare_worker' || !$user->healthcareWorker?->resume_path) {
+            abort(404, 'Resume not found.');
+        }
+
+        $resumePath = $user->healthcareWorker->resume_path;
+
+        if (!Storage::disk('public')->exists($resumePath)) {
+            abort(404, 'Resume not found.');
+        }
+
+        $fileName = str($user->fullname ?: 'healthcare-worker')
+            ->slug()
+            ->append('-resume.pdf')
+            ->toString();
+
+        return Storage::disk('public')->download($resumePath, $fileName);
     }
 
     public function impersonateClient($id)

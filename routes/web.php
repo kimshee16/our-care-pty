@@ -206,6 +206,7 @@ Route::delete('/admin/settings/ndis-requirements/{id}', [App\Http\Controllers\Ad
 
 // healthcare registration handled by controller so that it creates both user and profile
 Route::get('/healthcare-register', [App\Http\Controllers\HealthcareController::class, 'showRegistrationForm']);
+Route::post('/healthcare-register/parse-resume', [App\Http\Controllers\HealthcareController::class, 'parseResume']);
 Route::post('/healthcare-register', [App\Http\Controllers\HealthcareController::class, 'register']);
 Route::get('/healthcare-jobs', [App\Http\Controllers\HealthcareController::class, 'jobs'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':healthcare_worker');
@@ -242,6 +243,8 @@ Route::get('/admin-registrations', [App\Http\Controllers\AdminController::class,
 Route::post('/admin-registrations/{id}/approve', [App\Http\Controllers\AdminController::class, 'approve'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin');
 Route::post('/admin-registrations/{id}/reject', [App\Http\Controllers\AdminController::class, 'reject'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin');
+Route::get('/admin-registrations/{id}/resume', [App\Http\Controllers\AdminController::class, 'downloadResume'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin');
 
 Route::post('/admin-registrations/{id}/impersonate-client', [App\Http\Controllers\AdminController::class, 'impersonateClient'])

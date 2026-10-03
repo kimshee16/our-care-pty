@@ -23,6 +23,7 @@ class HealthcareWorker extends Model
         'location',
         'credentials',
         'profile_photo',
+        'resume_path',
     ];
 
     public function user()
