@@ -4,8 +4,11 @@
 
 @section('content')
 <div class="dashboard-content">
-    <div class="dashboard-header">
+    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
         <h1>Registration Management</h1>
+        <a href="{{ route('admin.clients.create') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--accent); color: white; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px;">
+            <i class="fas fa-user-plus" aria-hidden="true"></i> Add a Client
+        </a>
     </div>
 
     @if(session('status'))

@@ -1,9 +1,13 @@
+@php
+    $adminRegistration = $adminRegistration ?? false;
+    $recaptchaSiteKey = $adminRegistration ? null : config('services.recaptcha.site_key');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Sign Up</title>
+    <title>{{ $adminRegistration ? 'Add a Client' : 'Client Sign Up' }}</title>
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
     <style>
@@ -191,14 +195,11 @@
     </style>
 </head>
 <body>
-    @php
-        $recaptchaSiteKey = config('services.recaptcha.site_key');
-    @endphp
     <div class="register-container">
         <div class="register-content">
-            <a href="{{ url('/signup-option') }}" class="back-link">← Back</a>
-            <h1>Client Registration</h1>
-            <p>Create your account to get started</p>
+            <a href="{{ url($adminRegistration ? '/admin-registrations' : '/signup-option') }}" class="back-link">&larr; {{ $adminRegistration ? 'Back to registrations' : 'Back' }}</a>
+            <h1>{{ $adminRegistration ? 'Add a Client' : 'Client Registration' }}</h1>
+            <p>{{ $adminRegistration ? 'Register a client on their behalf. Their account will be approved and ready to use.' : 'Create your account to get started' }}</p>
             @if($errors->any())
                 <div style="color:red;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
@@ -209,7 +210,7 @@
                 </div>
             @endif
 
-            <form id="clientRegisterForm" method="POST" action="{{ url('/client-register') }}">
+            <form id="clientRegisterForm" method="POST" action="{{ $adminRegistration ? route('admin.clients.store') : url('/client-register') }}">
                 @csrf
                 <div class="form-row">
                     <div class="form-group">
@@ -225,7 +226,7 @@
                 <div class="form-group">
                     <label for="alias">Display Name (Optional)</label>
                     <input type="text" id="alias" name="alias" value="{{ old('alias') }}" placeholder="Business name or preferred display name">
-                    <small style="color: #666; font-size: 12px;">This name will be shown on your job posts instead of your personal name</small>
+                    <small style="color: #666; font-size: 12px;">{{ $adminRegistration ? 'This name will be shown on the client’s job posts instead of their personal name.' : 'This name will be shown on your job posts instead of your personal name' }}</small>
                 </div>
 
                 <div class="form-group">
@@ -240,40 +241,40 @@
 
                 <div class="form-group">
                     <label for="dob">Date of Birth *</label>
-                    <input type="date" id="dob" name="dob" required>
+                    <input type="date" id="dob" name="dob" value="{{ old('dob') }}" @if($adminRegistration) max="{{ now()->toDateString() }}" @endif required>
                 </div>
 
                 <div class="form-group">
                     <label for="address">Address *</label>
-                    <input type="text" id="address" name="address" required>
+                    <input type="text" id="address" name="address" value="{{ old('address') }}" required>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="city">City *</label>
-                        <input type="text" id="city" name="city" required>
+                        <input type="text" id="city" name="city" value="{{ old('city') }}" required>
                     </div>
                     <div class="form-group">
                         <label for="state">State *</label>
-                        <input type="text" id="state" name="state" required>
+                        <input type="text" id="state" name="state" value="{{ old('state') }}" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="zipcode">Post Code *</label>
-                        <input type="text" id="zipcode" name="zipcode" required>
+                        <input type="text" id="zipcode" name="zipcode" value="{{ old('zipcode') }}" required>
                     </div>
                     <div class="form-group">
                         <label for="country">Country *</label>
-                        <input type="text" id="country" name="country" required>
+                        <input type="text" id="country" name="country" value="{{ old('country') }}" required>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password *</label>
                     <div class="password-field">
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" autocomplete="new-password" minlength="6" required>
                         <button type="button" class="password-toggle" aria-label="Show password" aria-controls="password" data-target="password">
                             <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
@@ -292,7 +293,7 @@
                 <div class="form-group">
                     <label for="password_confirmation">Confirm Password *</label>
                     <div class="password-field">
-                        <input type="password" id="password_confirmation" name="password_confirmation" required>
+                        <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" minlength="6" required>
                         <button type="button" class="password-toggle" aria-label="Show confirm password" aria-controls="password_confirmation" data-target="password_confirmation">
                             <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
@@ -311,7 +312,7 @@
                 <div class="form-group">
                     <label class="checkbox-label" for="privacy_rules_disclaimer">
                         <input type="checkbox" id="privacy_rules_disclaimer" name="privacy_rules_disclaimer" value="1" {{ old('privacy_rules_disclaimer') ? 'checked' : '' }} required>
-                        <span>Privacy Rules Disclaimer * - I acknowledge that the information I provide will be handled according to Our Care's privacy rules and used to process my registration.</span>
+                        <span>{{ $adminRegistration ? "Privacy Rules Disclaimer * - I acknowledge that the client information I provide will be handled according to Our Care's privacy rules and used to process this client registration." : "Privacy Rules Disclaimer * - I acknowledge that the information I provide will be handled according to Our Care's privacy rules and used to process my registration." }}</span>
                     </label>
                 </div>
 
@@ -346,12 +347,14 @@
                     });
                 </script>
 
-                <button type="submit" class="register-btn">Create Account</button>
+                <button type="submit" class="register-btn">{{ $adminRegistration ? 'Create Client Account' : 'Create Account' }}</button>
             </form>
 
+            @unless($adminRegistration)
             <div class="login-link">
                 Already have an account? <a href="{{ url('/login') }}">Sign In</a>
             </div>
+            @endunless
         </div>
     </div>
 

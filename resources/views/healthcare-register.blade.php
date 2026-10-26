@@ -110,21 +110,6 @@
             margin-bottom: 12px;
         }
 
-        .resume-analyze-btn {
-            padding: 9px 12px;
-            border: none;
-            border-radius: 6px;
-            background: #674cbf;
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .resume-analyze-btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.65;
-        }
-
         .resume-status {
             min-height: 18px;
             color: #555;
@@ -215,7 +200,6 @@
                         <div style="font-size:12px; color:#666; margin-top:6px;">PDF only, up to 5 MB.</div>
                         @error('resume')<div style="color:red; margin-top:6px; font-size:12px;">{{ $message }}</div>@enderror
                     </div>
-                    <button type="button" id="analyzeResumeBtn" class="resume-analyze-btn" disabled>Analyze resume and fill form</button>
                     <div id="resumeParseStatus" class="resume-status" role="status" aria-live="polite"></div>
                 </div>
 
@@ -349,7 +333,6 @@
             const healthcareSkillsList = document.getElementById('healthcareSkillsList');
             const healthcareRegisterForm = document.getElementById('healthcareRegisterForm');
             const resumeInput = document.getElementById('resume');
-            const analyzeResumeBtn = document.getElementById('analyzeResumeBtn');
             const resumeParseStatus = document.getElementById('resumeParseStatus');
             const allowedSkills = new Set(
                 Array.from(healthcareSkillsList.options).map(option => option.value.trim())
@@ -494,7 +477,6 @@
                 formData.append('resume', file);
                 formData.append('_token', healthcareRegisterForm.querySelector('input[name="_token"]').value);
 
-                analyzeResumeBtn.disabled = true;
                 setResumeStatus('Analyzing resume...');
 
                 try {
@@ -521,8 +503,6 @@
                     setResumeStatus(message, filled === 0);
                 } catch (error) {
                     setResumeStatus('Resume could not be analyzed. Please complete the form manually.', true);
-                } finally {
-                    analyzeResumeBtn.disabled = !resumeInput.files.length;
                 }
             }
 
@@ -555,16 +535,12 @@
             });
 
             resumeInput.addEventListener('change', function () {
-                analyzeResumeBtn.disabled = !resumeInput.files.length;
-
                 if (resumeInput.files.length) {
                     analyzeResume();
                 } else {
                     setResumeStatus('');
                 }
             });
-
-            analyzeResumeBtn.addEventListener('click', analyzeResume);
 
             const employmentHistoryFields = document.getElementById('employmentHistoryFields');
             const addEmploymentBtn = document.getElementById('addEmploymentBtn');

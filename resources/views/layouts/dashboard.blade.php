@@ -618,9 +618,17 @@
                             <i class="fas fa-clipboard-check"></i>
                             Finalization
                         </a>
+                        <a href="{{ url('/admin/document-signing') }}" class="nav-item {{ request()->is('admin/document-signing') || request()->is('admin/document-signing/*') ? 'active' : '' }}">
+                            <i class="fas fa-file-signature"></i>
+                            Document Signing
+                        </a>
                         <a href="{{ url('/admin/endorsements/create') }}" class="nav-item {{ request()->is('admin/endorsements*') ? 'active' : '' }}">
                             <i class="fas fa-award"></i>
                             Endorsements
+                        </a>
+                        <a href="{{ route('file-manager.index') }}" class="nav-item {{ request()->is('admin/file-manager*') ? 'active' : '' }}">
+                            <i class="fas fa-folder-open"></i>
+                            File Manager
                         </a>
                         <a href="{{ url('/admin/cms') }}" class="nav-item {{ request()->is('admin/cms') || request()->is('admin/cms/*') ? 'active' : '' }}">
                             <i class="fas fa-palette"></i>
@@ -647,6 +655,10 @@
                         <a href="{{ url('/client/endorsed-workers') }}" class="nav-item {{ request()->is('client/endorsed-workers') ? 'active' : '' }}">
                             <i class="fas fa-award"></i>
                             Endorsed Workers
+                        </a>
+                        <a href="{{ url('/client/document-signing') }}" class="nav-item {{ request()->is('client/document-signing') || request()->is('client/document-signing/*') ? 'active' : '' }}">
+                            <i class="fas fa-file-signature"></i>
+                            Document Signing
                         </a>
                         <a href="{{ url('/profile') }}" class="nav-item {{ request()->is('profile') ? 'active' : '' }}">
                             <i class="fas fa-user"></i>

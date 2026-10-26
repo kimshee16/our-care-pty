@@ -19,4 +19,9 @@ class Client extends Model
         'country',
         'alias',
     ];
+
+    public function documentSigningRequests()
+    {
+        return $this->hasMany(DocumentSigningRequest::class);
+    }
 }
