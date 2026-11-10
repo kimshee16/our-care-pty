@@ -34,7 +34,12 @@ The service account uses the `https://www.googleapis.com/auth/drive` scope to ma
 ## Troubleshooting
 
 - **Connection needed:** Check both environment values and whether PHP can read the JSON file.
-- **Authentication failed:** Verify it is a valid, active service-account key, the Drive API is enabled, and the server clock is correct.
+- **Authentication failed:** Verify it is a valid, active service-account key and PHP OpenSSL is enabled. The File Manager distinguishes Google credential rejection from hosting connection failures without displaying provider responses or key contents.
+- **Google authentication library missing:** Deploy Composer dependencies, including `google/auth`. If cPanel has no terminal, run `composer install` locally for the server's PHP version and upload the resulting `vendor/` dependencies using your deployment process.
+- **Hosting SSL certificate error:** Ask the hosting provider to repair the CA certificate bundle used by PHP cURL. Keep TLS verification enabled.
+- **Cannot reach Google authentication:** Ask the hosting provider to check outbound HTTPS access to `oauth2.googleapis.com`, DNS resolution, and connection timeouts.
+- **Authentication timestamp rejected:** Ask the hosting provider to synchronize the server clock. Google's service-account authentication uses time-limited signed requests.
+- **No cPanel terminal:** After editing the hosted `.env`, use cPanel File Manager to remove only `bootstrap/cache/config.php` if it exists. Leave `packages.php` and `services.php` in place. The credentials path must refer to the JSON file on the hosting server, not a Windows path on your computer. Upload an updated `app/Services/GoogleDriveService.php` to receive the specific authentication messages above.
 - **Denied / unavailable:** Check the Shared Drive ID, membership, Workspace restrictions, and Content manager permissions. A Viewer can browse but cannot upload or manage files.
 - **Upload too large:** Align PHP/Apache limits with the app limit described above.
 

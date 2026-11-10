@@ -225,22 +225,63 @@ class GoogleDriveService
         if ($token = Cache::get($key)) {
             return $token;
         }
+        if (! class_exists(ServiceAccountCredentials::class)) {
+            throw new GoogleDriveException('The Google authentication library is missing on the hosting server. Deploy the Composer vendor dependencies, including google/auth.');
+        }
+        if (! extension_loaded('openssl')) {
+            throw new GoogleDriveException('PHP OpenSSL is disabled on the hosting server. Ask your hosting provider to enable it for this website.');
+        }
         try {
             $auth = new ServiceAccountCredentials('https://www.googleapis.com/auth/drive', $credentials);
             $token = $auth->fetchAuthToken(function (RequestInterface $request) {
-                return Http::connectTimeout(10)->timeout(30)->withHeaders($request->getHeaders())
-                    ->send($request->getMethod(), (string) $request->getUri(), ['body' => (string) $request->getBody()])
-                    ->toPsrResponse();
+                $response = Http::connectTimeout(10)->timeout(30)->withHeaders($request->getHeaders())
+                    ->withOptions(['allow_redirects' => false])
+                    ->send($request->getMethod(), (string) $request->getUri(), ['body' => (string) $request->getBody()]);
+                if (! $response->successful()) {
+                    throw new GoogleDriveException($this->authenticationError($response));
+                }
+
+                return $response->toPsrResponse();
             });
             if (empty($token['access_token'])) {
                 throw new \RuntimeException('Missing access token.');
             }
+        } catch (GoogleDriveException $e) {
+            throw $e;
+        } catch (ConnectionException $e) {
+            if (preg_match('/cURL error (?:60|77)\b/', $e->getMessage())) {
+                throw new GoogleDriveException('The hosting server could not verify Google\'s SSL certificate. Ask your hosting provider to repair the PHP cURL CA certificate bundle.');
+            }
+            throw new GoogleDriveException('The hosting server could not reach Google authentication. Ask your hosting provider to check outbound HTTPS access to oauth2.googleapis.com and DNS resolution.');
         } catch (\Throwable $e) {
             // Do not expose provider responses, signed assertions or credentials in errors/logs.
-            throw new GoogleDriveException('Google Drive authentication failed. Check the service-account key and enable the Drive API.');
+            throw new GoogleDriveException('Google Drive authentication failed. Check the service-account JSON key and that PHP OpenSSL is enabled on the hosting server.');
         }
         Cache::put($key, $token['access_token'], max(1, (int) ($token['expires_in'] ?? 3600) - 60));
 
         return $token['access_token'];
+    }
+
+    private function authenticationError(Response $response): string
+    {
+        // Inspect known error codes only; never return Google's raw response or signed request.
+        $error = $response->json('error');
+        $description = $response->json('error_description');
+        $description = is_string($description) ? strtolower($description) : '';
+        if ($error === 'invalid_grant' && (str_contains($description, 'reasonable timeframe')
+            || str_contains($description, 'iat and exp'))) {
+            return 'Google rejected the authentication timestamp. Ask your hosting provider to synchronize the server clock.';
+        }
+        if ($error === 'invalid_grant') {
+            return 'Google rejected the service-account credentials. Check that the uploaded JSON key is active, belongs to the service account, and the hosting server clock is correct.';
+        }
+        if (in_array($error, ['invalid_client', 'disabled_client', 'unauthorized_client'], true)) {
+            return 'Google rejected the service account. Check that the account is enabled and the uploaded JSON key belongs to it.';
+        }
+        if ($response->status() === 429 || $response->serverError()) {
+            return 'Google authentication is temporarily unavailable. Please wait a moment and try again.';
+        }
+
+        return 'Google Drive authentication failed. Check the service-account JSON key and the Google Cloud service-account settings.';
     }
 }

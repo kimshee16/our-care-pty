@@ -6,6 +6,7 @@ use App\Services\GoogleDriveService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class FileManagerTest extends TestCase
@@ -222,7 +223,7 @@ class FileManagerTest extends TestCase
         Http::assertSent(fn ($request) => str_contains($request->url(), '/files?') && str_contains($request['q'], "mimeType = 'application/vnd.google-apps.folder'"));
     }
 
-    public function test_service_account_token_exchange_is_cached(): void
+    private function useSigningKey(): void
     {
         $options = ['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA];
         if (is_file('C:/xampp/php/extras/openssl/openssl.cnf')) {
@@ -234,6 +235,50 @@ class FileManagerTest extends TestCase
         $credentials = json_decode($this->credentials, true);
         $credentials['private_key'] = $privateKey;
         file_put_contents($this->credentialsPath, json_encode($credentials));
+    }
+
+    #[TestWith(['cURL error 60: SECRET PROVIDER DETAILS', 'repair the PHP cURL CA certificate bundle'])]
+    #[TestWith(['cURL error 77: SECRET PROVIDER DETAILS', 'repair the PHP cURL CA certificate bundle'])]
+    #[TestWith(['cURL error 6: SECRET PROVIDER DETAILS', 'outbound HTTPS access to oauth2.googleapis.com'])]
+    #[TestWith(['cURL error 28: SECRET PROVIDER DETAILS', 'outbound HTTPS access to oauth2.googleapis.com'])]
+    public function test_authentication_connection_failures_show_safe_hosting_guidance(string $failure, string $message): void
+    {
+        $this->useSigningKey();
+        Http::fake(['oauth2.googleapis.com/token' => Http::failedConnection($failure)]);
+        $this->admin()->get('/admin/file-manager')->assertOk()->assertSee($message)
+            ->assertDontSee('SECRET PROVIDER DETAILS')->assertDontSee('BEGIN PRIVATE KEY');
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), '/drive/v3/'));
+    }
+
+    #[TestWith(['invalid_grant', 'Invalid JWT Signature. SECRET PROVIDER DETAILS', 400, 'Google rejected the service-account credentials'])]
+    #[TestWith(['invalid_grant', 'Token must be in a reasonable timeframe. SECRET PROVIDER DETAILS', 400, 'synchronize the server clock'])]
+    #[TestWith(['invalid_client', 'SECRET PROVIDER DETAILS', 401, 'Check that the account is enabled'])]
+    #[TestWith(['temporarily_unavailable', 'SECRET PROVIDER DETAILS', 503, 'Google authentication is temporarily unavailable'])]
+    #[TestWith(['rate_limit_exceeded', 'SECRET PROVIDER DETAILS', 429, 'Google authentication is temporarily unavailable'])]
+    #[TestWith(['unexpected_error', 'SECRET PROVIDER DETAILS', 400, 'Google Cloud service-account settings'])]
+    public function test_google_authentication_rejections_show_safe_actionable_errors(string $error, string $description, int $status, string $message): void
+    {
+        $this->useSigningKey();
+        Http::fake(['oauth2.googleapis.com/token' => Http::response([
+            'error' => $error, 'error_description' => $description,
+        ], $status)]);
+        $this->admin()->get('/admin/file-manager')->assertOk()->assertSee($message)
+            ->assertDontSee('SECRET PROVIDER DETAILS')->assertDontSee('BEGIN PRIVATE KEY');
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), '/drive/v3/'));
+    }
+
+    public function test_picker_returns_safe_authentication_failure_as_unavailable(): void
+    {
+        $this->useSigningKey();
+        Http::fake(['oauth2.googleapis.com/token' => Http::failedConnection('cURL error 60: SECRET PROVIDER DETAILS')]);
+        $this->admin()->getJson('/admin/file-manager?picker=1')->assertStatus(503)
+            ->assertJsonPath('error', 'The hosting server could not verify Google\'s SSL certificate. Ask your hosting provider to repair the PHP cURL CA certificate bundle.')
+            ->assertDontSee('SECRET PROVIDER DETAILS');
+    }
+
+    public function test_service_account_token_exchange_is_cached(): void
+    {
+        $this->useSigningKey();
         Http::fake([
             'oauth2.googleapis.com/token' => Http::response(['access_token' => 'new-token', 'expires_in' => 3600, 'token_type' => 'Bearer']),
             'www.googleapis.com/drive/v3/files/drive-1*' => Http::response($this->item('drive-1')),
