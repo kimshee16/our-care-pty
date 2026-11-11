@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\DocumentSigningRequest;
 use App\Models\User;
+use App\Exceptions\GoogleDriveException;
 use App\Services\DocuSignService;
+use App\Services\SigningDocumentImporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -62,19 +64,24 @@ class DocumentSigningController extends Controller
             'syncFailed' => $syncFailed,
             'configMissing' => $this->docuSign->configurationErrors(),
             'docusignConsentUrl' => session('docusign_consent_url'),
+            'signingDriveMimeTypes' => SigningDocumentImporter::MIME_TYPES,
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, SigningDocumentImporter $importer)
     {
         $user = $this->requireAdmin();
+        $request->mergeIfMissing(['document_source' => 'manual']);
 
         $validated = $request->validate([
             'client_id' => ['required', 'exists:clients,id'],
             'title' => ['required', 'string', 'max:255'],
             'message' => ['nullable', 'string', 'max:2000'],
-            'documents' => ['required', 'array', 'min:1', 'max:10'],
+            'document_source' => ['required', 'in:manual,file_manager'],
+            'documents' => ['exclude_unless:document_source,manual', 'required', 'array', 'min:1', 'max:10'],
             'documents.*' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:15360'],
+            'drive_files' => ['exclude_unless:document_source,file_manager', 'required', 'array', 'min:1', 'max:10'],
+            'drive_files.*' => ['required', 'string', 'distinct', 'regex:/^[A-Za-z0-9_-]+$/D'],
             'signature_positions' => ['nullable', 'array'],
             'signature_positions.*.page' => ['nullable', 'integer', 'min:1'],
             'signature_positions.*.x' => ['nullable', 'integer', 'min:0'],
@@ -83,37 +90,67 @@ class DocumentSigningController extends Controller
             'documents.required' => 'Please upload at least one document that the client needs to sign.',
             'documents.*.mimes' => 'Each document must be a PDF, DOC, or DOCX file.',
             'documents.*.max' => 'Each document must be 15 MB or smaller.',
+            'drive_files.required' => 'Please choose at least one document from File Manager.',
+            'drive_files.max' => 'Choose up to 10 documents.',
         ]);
 
         $documentFiles = [];
         $signaturePositions = $validated['signature_positions'] ?? [];
+        $temporaryFiles = [];
 
-        foreach ($request->file('documents', []) as $index => $file) {
-            $position = $signaturePositions[$index] ?? [];
+        try {
+            $files = $request->file('documents', []);
+            if ($validated['document_source'] === 'file_manager') {
+                $files = [];
+                foreach ($validated['drive_files'] as $id) {
+                    $temporaryFiles[] = $file = $importer->download($id);
+                    $files[] = $file;
+                }
+            }
 
-            $documentFiles[] = [
-                'path' => $file->store('document-signing/' . $validated['client_id']),
-                'original_name' => $file->getClientOriginalName(),
-                'mime_type' => $file->getClientMimeType(),
-                'size' => $file->getSize(),
-                'signature_page' => (int) ($position['page'] ?? 1),
-                'signature_x' => (int) ($position['x'] ?? config('services.docusign.sign_x_position', 420)),
-                'signature_y' => (int) ($position['y'] ?? config('services.docusign.sign_y_position', 650)),
-            ];
+            foreach ($files as $index => $file) {
+                $position = $signaturePositions[$index] ?? [];
+                $path = $file->store('document-signing/' . $validated['client_id'], 'local');
+                if (! $path) {
+                    throw new \RuntimeException('Unable to store the signing document.');
+                }
+                $documentFiles[] = [
+                    'path' => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                    'signature_page' => (int) ($position['page'] ?? 1),
+                    'signature_x' => (int) ($position['x'] ?? config('services.docusign.sign_x_position', 420)),
+                    'signature_y' => (int) ($position['y'] ?? config('services.docusign.sign_y_position', 650)),
+                ];
+            }
+
+            $firstDocument = $documentFiles[0] ?? null;
+
+            DocumentSigningRequest::create([
+                'client_id' => $validated['client_id'],
+                'created_by' => $user->id,
+                'title' => $validated['title'],
+                'message' => $validated['message'] ?? null,
+                'document_path' => $firstDocument['path'] ?? null,
+                'document_original_name' => $firstDocument['original_name'] ?? null,
+                'document_files' => $documentFiles,
+                'status' => DocumentSigningRequest::STATUS_DRAFT,
+            ]);
+        } catch (Throwable $exception) {
+            Storage::disk('local')->delete(array_column($documentFiles, 'path'));
+            if ($exception instanceof GoogleDriveException) {
+                return back()->withInput($request->except('documents'))
+                    ->withErrors(['drive_files' => $exception->getMessage()]);
+            }
+            throw $exception;
+        } finally {
+            foreach ($temporaryFiles as $file) {
+                if (is_file($file->getPathname())) {
+                    unlink($file->getPathname());
+                }
+            }
         }
-
-        $firstDocument = $documentFiles[0] ?? null;
-
-        DocumentSigningRequest::create([
-            'client_id' => $validated['client_id'],
-            'created_by' => $user->id,
-            'title' => $validated['title'],
-            'message' => $validated['message'] ?? null,
-            'document_path' => $firstDocument['path'] ?? null,
-            'document_original_name' => $firstDocument['original_name'] ?? null,
-            'document_files' => $documentFiles,
-            'status' => DocumentSigningRequest::STATUS_DRAFT,
-        ]);
 
         return redirect('/admin/document-signing')->with('success', 'Document signing request created.');
     }

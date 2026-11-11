@@ -8,12 +8,130 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class DocumentSigningTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_admin_can_choose_file_manager_and_import_documents_with_signature_positions(): void
+    {
+        Storage::fake('local');
+        $this->fakeSigningDrive();
+        $admin = User::factory()->create(['accounttype' => 'admin']);
+        $client = $this->createClient('drive@example.com');
+        $this->withSession(['user' => ['id' => $admin->id, 'accounttype' => 'admin']]);
+        $this->get('/admin/document-signing')->assertOk()
+            ->assertSee('Upload Option')->assertSee('Manual upload')->assertSee('Select from File Manager');
+        $this->post('/admin/document-signing', [
+            'client_id' => $client->id, 'title' => 'Drive documents', 'document_source' => 'file_manager',
+            'drive_files' => ['agreement', 'google-doc'],
+            'signature_positions' => [['page' => 2, 'x' => 110, 'y' => 220], ['page' => 1, 'x' => 50, 'y' => 80]],
+        ])->assertRedirect('/admin/document-signing')->assertSessionHasNoErrors();
+        $document = DocumentSigningRequest::firstOrFail();
+        $this->assertSame(['agreement.pdf', 'Care Plan.pdf'], $document->documentDisplayNames());
+        $this->assertSame(2, $document->document_files[0]['signature_page']);
+        $this->assertSame(110, $document->document_files[0]['signature_x']);
+        $this->assertSame(80, $document->document_files[1]['signature_y']);
+        foreach ($document->documentFiles() as $file) {
+            Storage::disk('local')->assertExists($file['path']);
+            $this->assertStringStartsWith('%PDF-', Storage::disk('local')->get($file['path']));
+        }
+        $this->get('/admin/document-signing/'.$document->id.'/download/0')->assertDownload('agreement.pdf');
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/google-doc/export') && $request['mimeType'] === 'application/pdf');
+        Http::assertNotSent(fn ($request) => $request->method() !== 'GET');
+    }
+
+    public function test_drive_selection_is_required_and_duplicates_invalid_ids_and_too_many_files_are_rejected(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake();
+        $admin = User::factory()->create(['accounttype' => 'admin']);
+        $payload = ['client_id' => $this->createClient('validation@example.com')->id,
+            'title' => 'Agreement', 'document_source' => 'file_manager'];
+        $this->withSession(['user' => ['id' => $admin->id, 'accounttype' => 'admin']]);
+        $this->post('/admin/document-signing', $payload)->assertSessionHasErrors('drive_files');
+        $this->post('/admin/document-signing', $payload + ['drive_files' => ['same', 'same']])->assertSessionHasErrors('drive_files.0');
+        $this->post('/admin/document-signing', $payload + ['drive_files' => ['bad/id']])->assertSessionHasErrors('drive_files.0');
+        $this->post('/admin/document-signing', $payload + ['drive_files' => array_map(fn ($i) => 'file-'.$i, range(1, 11))])->assertSessionHasErrors('drive_files');
+        $this->post('/admin/document-signing', array_replace($payload, ['document_source' => 'manual', 'drive_files' => ['agreement']]))
+            ->assertSessionHasErrors('documents');
+        $this->assertDatabaseCount('document_signing_requests', 0);
+        Http::assertNothingSent();
+    }
+
+    public function test_drive_import_rejects_other_drives_unsupported_files_and_oversized_documents(): void
+    {
+        Storage::fake('local');
+        $this->fakeSigningDrive();
+        $admin = User::factory()->create(['accounttype' => 'admin']);
+        $payload = ['client_id' => $this->createClient('rejected@example.com')->id,
+            'title' => 'Agreement', 'document_source' => 'file_manager'];
+        $this->withSession(['user' => ['id' => $admin->id, 'accounttype' => 'admin']]);
+        $this->post('/admin/document-signing', $payload + ['drive_files' => ['foreign']])->assertNotFound();
+        foreach (['folder', 'large', 'forged-pdf', 'empty', 'large-stream'] as $id) {
+            $this->post('/admin/document-signing', $payload + ['drive_files' => [$id]])
+                ->assertSessionHasErrors();
+        }
+        $this->assertDatabaseCount('document_signing_requests', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles());
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), 'alt=media')
+            && preg_match('~/files/(foreign|folder|large)\?~', $request->url()));
+    }
+
+    public function test_drive_failure_during_a_multi_file_import_does_not_create_a_partial_request(): void
+    {
+        Storage::fake('local');
+        $this->fakeSigningDrive();
+        $admin = User::factory()->create(['accounttype' => 'admin']);
+        $this->withSession(['user' => ['id' => $admin->id, 'accounttype' => 'admin']])
+            ->from('/admin/document-signing')->post('/admin/document-signing', [
+                'client_id' => $this->createClient('drive-failure@example.com')->id, 'title' => 'Agreement',
+                'document_source' => 'file_manager', 'drive_files' => ['agreement', 'denied'],
+            ])->assertRedirect('/admin/document-signing')->assertSessionHasErrors('drive_files');
+        $this->assertDatabaseCount('document_signing_requests', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles());
+    }
+
+    protected function fakeSigningDrive(): void
+    {
+        Http::preventStrayRequests();
+        $credentialsPath = tempnam(sys_get_temp_dir(), 'signing-test-');
+        $credentials = json_encode(['type' => 'service_account', 'client_email' => 'test@example.iam.gserviceaccount.com', 'private_key' => 'fake-key']);
+        file_put_contents($credentialsPath, $credentials);
+        $this->beforeApplicationDestroyed(fn () => is_file($credentialsPath) ? unlink($credentialsPath) : null);
+        config(['services.google_drive.shared_drive_id' => 'drive-1', 'services.google_drive.credentials_path' => $credentialsPath]);
+        Cache::put('google-drive-token:'.hash('sha256', $credentials), 'test-token', 3600);
+        Http::fake(function ($request) {
+            $path = parse_url($request->url(), PHP_URL_PATH);
+            $id = basename($path);
+            if ($id === 'denied') {
+                return Http::response(['error' => ['message' => 'Permission denied']], 403);
+            }
+            if (str_contains($request->url(), 'alt=media') || str_ends_with($path, '/export')) {
+                $content = match ($id) {
+                    'forged-pdf' => '<html>This is not a PDF.</html>',
+                    'empty' => '',
+                    'large-stream' => str_repeat('x', 15 * 1024 * 1024 + 1),
+                    default => "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF",
+                };
+                return Http::response($content, 200, ['Content-Type' => 'application/pdf']);
+            }
+            return Http::response([
+                'id' => $id, 'driveId' => $id === 'foreign' ? 'another-drive' : 'drive-1', 'trashed' => false,
+                'name' => $id === 'google-doc' ? 'Care Plan' : $id.'.pdf',
+                'mimeType' => match ($id) {
+                    'google-doc' => 'application/vnd.google-apps.document',
+                    'folder' => 'application/vnd.google-apps.folder',
+                    default => 'application/pdf',
+                },
+                'size' => $id === 'large' ? '15728641' : '100',
+                'capabilities' => ['canDownload' => true],
+            ]);
+        });
+    }
 
     public function test_admin_can_create_document_signing_request_for_client(): void
     {

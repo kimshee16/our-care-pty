@@ -17,6 +17,7 @@ class FileManagerController extends Controller
             'search' => ['nullable', 'string', 'max:200'],
             'page' => ['nullable', 'string', 'max:2048'],
             'picker' => ['nullable', 'boolean'],
+            'include_files' => ['nullable', 'boolean'],
         ]);
         $folderId = $data['folder'] ?? $this->drive->rootId();
         $search = $data['search'] ?? '';
@@ -29,7 +30,8 @@ class FileManagerController extends Controller
             if ($configured) {
                 $folder = $this->drive->folder($folderId);
                 $breadcrumbs = $this->drive->breadcrumbs($folder);
-                $listing = $this->drive->listing($folderId, $search, $data['page'] ?? null, $request->boolean('picker'));
+                $listing = $this->drive->listing($folderId, $search, $data['page'] ?? null,
+                    $request->boolean('picker') && ! $request->boolean('include_files'));
             }
         } catch (GoogleDriveException $e) {
             $error = $e->getMessage();

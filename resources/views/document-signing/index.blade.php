@@ -66,6 +66,56 @@
             grid-column: 1 / -1;
         }
 
+        .dashboard-content [hidden] { display: none !important; }
+        .signing-drive-dialog {
+            position: fixed;
+            inset: 0;
+            margin: auto;
+            box-sizing: border-box;
+            background: #ffffff;
+            border: 1px solid #ddd6f3;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(52, 32, 105, 0.25);
+            padding: 20px;
+            width: min(680px, calc(100vw - 32px));
+            max-height: min(85dvh, calc(100dvh - 32px));
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+        .signing-drive-dialog h2 { color: var(--accent); }
+        .signing-drive-dialog::backdrop { background: rgba(37, 22, 75, 0.4); }
+        .signing-drive-toolbar, .signing-drive-row, .signing-drive-selected li {
+            align-items: center;
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .signing-drive-toolbar input {
+            min-width: 0;
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd6f3;
+            border-radius: 6px;
+            font: inherit;
+            accent-color: var(--accent);
+        }
+        .signing-drive-dialog input:focus-visible,
+        .signing-drive-dialog button:focus-visible,
+        #browseSigningDrive:focus-visible,
+        .signing-drive-selected button:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+        .signing-drive-dialog .signing-btn:hover,
+        #browseSigningDrive:hover,
+        .signing-drive-selected .signing-btn:hover { filter: brightness(0.9); }
+        .signing-drive-row { border-bottom: 1px solid #eee9fa; padding: 8px 0; }
+        .signing-drive-row span, .signing-drive-selected span { overflow-wrap: anywhere; min-width: 0; }
+        .signing-drive-crumbs { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+        .signing-drive-selected { list-style: none; margin: 0; padding: 0; }
+        .signing-btn:disabled { cursor: default; opacity: 0.55; }
+
         .signing-field.message-field {
             grid-column: 2;
             grid-row: 1 / span 3;
@@ -410,10 +460,27 @@
                     </div>
 
                     <div class="signing-field">
-                        <label for="documents">Upload Documents</label>
-                        <input id="documents" type="file" name="documents[]" accept=".pdf,.doc,.docx" multiple required>
+                        <label for="document_source">Upload Option</label>
+                        <select id="document_source" name="document_source">
+                            <option value="manual" @selected(old('document_source', 'manual') === 'manual')>Manual upload</option>
+                            <option value="file_manager" @selected(old('document_source') === 'file_manager')>Select from File Manager</option>
+                        </select>
+                        @error('document_source') <span class="field-error">{{ $message }}</span> @enderror
+                        <div id="manualDocuments" class="signing-field">
+                            <label for="documents">Upload Documents</label>
+                            <input id="documents" type="file" name="documents[]" accept=".pdf,.doc,.docx" multiple required>
+                        </div>
+                        <div id="driveDocuments" class="signing-field" hidden>
+                            <button type="button" class="signing-btn primary" id="browseSigningDrive">Browse File Manager</button>
+                            <ul id="selectedDriveDocuments" class="signing-drive-selected" aria-label="Selected documents"></ul>
+                            <div id="driveDocumentInputs"></div>
+                            <span class="muted" id="driveSelectionStatus" role="status">No documents selected.</span>
+                        </div>
+                        <span class="muted">Up to 10 documents, 15 MB each. PDF, DOC or DOCX. Google Docs from File Manager are imported as PDF.</span>
                         @error('documents') <span class="field-error">{{ $message }}</span> @enderror
                         @error('documents.*') <span class="field-error">{{ $message }}</span> @enderror
+                        @error('drive_files') <span class="field-error">{{ $message }}</span> @enderror
+                        @error('drive_files.*') <span class="field-error">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="signing-field">
@@ -472,6 +539,20 @@
                     </button>
                 </div>
             </form>
+            <dialog id="signingDriveDialog" class="signing-drive-dialog" aria-labelledby="signingDriveTitle">
+                <h2 id="signingDriveTitle">Choose documents from File Manager</h2>
+                <div class="signing-drive-toolbar">
+                    <input id="signingDriveSearch" type="search" aria-label="Search current folder" placeholder="Search this folder">
+                    <button type="button" id="signingDriveSearchButton" class="signing-btn primary">Search</button>
+                </div>
+                <nav id="signingDriveCrumbs" class="signing-drive-crumbs" aria-label="File Manager folder path"></nav>
+                <p id="signingDriveStatus" class="muted" role="status"></p>
+                <div id="signingDriveFiles"></div>
+                <div class="signing-actions">
+                    <button type="button" id="signingDriveMore" class="signing-btn primary" hidden>More files</button>
+                    <button type="button" id="signingDriveDone" class="signing-btn primary">Done</button>
+                </div>
+            </dialog>
         </div>
     @endif
 
@@ -663,8 +744,12 @@
             try {
                 if (!window.pdfjsLib) throw new Error('PDF preview is unavailable.');
                 if (!placement.loadingTask) {
-                    placement.objectUrl = URL.createObjectURL(placement.file);
-                    placement.loadingTask = window.pdfjsLib.getDocument(placement.objectUrl);
+                    if (placement.file.driveId) {
+                        placement.loadingTask = window.pdfjsLib.getDocument(driveDownloadUrl(placement.file.driveId));
+                    } else {
+                        placement.objectUrl = URL.createObjectURL(placement.file);
+                        placement.loadingTask = window.pdfjsLib.getDocument(placement.objectUrl);
+                    }
                 }
                 const pdf = await placement.loadingTask.promise;
                 if (version !== renderVersion) return;
@@ -801,19 +886,171 @@
             button?.focus();
         });
 
-        documentsInput.addEventListener('change', function () {
+        const savedPositions = new Map();
+
+        function refreshPlacements(files) {
+            placements.forEach(item => savedPositions.set(item.file.driveId || item.file, {
+                page: item.pageInput.value, x: item.xInput.value, y: item.yInput.value,
+            }));
             selectPlacement(null);
             placements.forEach(function (placement) {
                 if (placement.loadingTask) placement.loadingTask.destroy().catch(() => {});
                 if (placement.objectUrl) URL.revokeObjectURL(placement.objectUrl);
             });
             placementList.replaceChildren();
-            placements = Array.from(documentsInput.files).map(createPlacementRow);
+            placements = files.map(function (file, index) {
+                const placement = createPlacementRow(file, index);
+                const saved = savedPositions.get(file.driveId || file);
+                if (saved) {
+                    placement.pageInput.value = saved.page;
+                    placement.xInput.value = saved.x;
+                    placement.yInput.value = saved.y;
+                }
+                return placement;
+            });
             placementPanel.hidden = placements.length === 0;
             placements.forEach(placement => placementList.append(placement.row));
             const firstPdf = placements.find(placement => placement.previewButton);
             if (firstPdf) selectPlacement(firstPdf);
+        }
+
+        const source = document.getElementById('document_source');
+        const selectedDriveFiles = new Map();
+        const driveDialog = document.getElementById('signingDriveDialog');
+        const driveResults = document.getElementById('signingDriveFiles');
+        const driveStatus = document.getElementById('signingDriveStatus');
+        const driveSearch = document.getElementById('signingDriveSearch');
+        const driveMore = document.getElementById('signingDriveMore');
+        const allowedMimeTypes = @json($signingDriveMimeTypes);
+        let driveFolder = null, driveNextPage = null, driveRequest = 0;
+        const driveDownloadUrl = id => @json(url('/admin/file-manager/files')) + '/' + encodeURIComponent(id) + '/download';
+
+        function driveButton(label, action) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'signing-btn primary';
+            button.textContent = label;
+            button.addEventListener('click', action);
+            return button;
+        }
+
+        function updateDocumentSource() {
+            const manual = source.value === 'manual';
+            document.getElementById('manualDocuments').hidden = !manual;
+            document.getElementById('driveDocuments').hidden = manual;
+            documentsInput.disabled = !manual;
+            documentsInput.required = manual;
+            document.querySelectorAll('#driveDocumentInputs input').forEach(input => input.disabled = manual);
+            refreshPlacements(manual ? Array.from(documentsInput.files) : Array.from(selectedDriveFiles.values()));
+        }
+
+        function updateDriveSelection() {
+            const list = document.getElementById('selectedDriveDocuments');
+            const inputs = document.getElementById('driveDocumentInputs');
+            list.replaceChildren();
+            inputs.replaceChildren();
+            selectedDriveFiles.forEach(file => {
+                const row = document.createElement('li');
+                const name = document.createElement('span');
+                name.textContent = file.name;
+                const remove = driveButton('Remove', () => {
+                    selectedDriveFiles.delete(file.driveId);
+                    updateDriveSelection();
+                });
+                remove.setAttribute('aria-label', 'Remove ' + file.name);
+                row.append(name, remove);
+                list.append(row);
+                const input = document.createElement('input');
+                input.type = 'hidden'; input.name = 'drive_files[]'; input.value = file.driveId;
+                inputs.append(input);
+            });
+            document.getElementById('driveSelectionStatus').textContent = selectedDriveFiles.size
+                ? `${selectedDriveFiles.size} of 10 documents selected.` : 'No documents selected.';
+            driveResults.querySelectorAll('[data-drive-file]').forEach(button => {
+                const selected = selectedDriveFiles.has(button.dataset.driveFile);
+                button.textContent = selected ? 'Selected' : 'Select';
+                button.disabled = selected || selectedDriveFiles.size >= 10;
+            });
+            updateDocumentSource();
+        }
+
+        async function loadDriveFolder(folder = null, page = null) {
+            const version = ++driveRequest;
+            driveMore.hidden = true;
+            driveStatus.textContent = 'Loading documents…';
+            if (!page) driveResults.replaceChildren();
+            const url = new URL(@json(route('file-manager.index')));
+            url.searchParams.set('picker', '1');
+            url.searchParams.set('include_files', '1');
+            if (folder) url.searchParams.set('folder', folder);
+            if (page) url.searchParams.set('page', page);
+            if (driveSearch.value.trim()) url.searchParams.set('search', driveSearch.value.trim());
+            try {
+                const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                const data = await response.json();
+                if (version !== driveRequest) return;
+                if (!response.ok || !data.folder) throw new Error(data.error || data.message || 'Could not load File Manager.');
+                driveFolder = data.folder.id;
+                driveNextPage = data.nextPageToken;
+                document.getElementById('signingDriveCrumbs').replaceChildren(...data.breadcrumbs.map(crumb =>
+                    driveButton(crumb.name, () => { driveSearch.value = ''; loadDriveFolder(crumb.id); })));
+                data.files.forEach(file => {
+                    const row = document.createElement('div');
+                    row.className = 'signing-drive-row';
+                    const name = document.createElement('span');
+                    name.textContent = file.name;
+                    if (file.mimeType === 'application/vnd.google-apps.folder') {
+                        row.append(name, driveButton('Open folder', () => { driveSearch.value = ''; loadDriveFolder(file.id); }));
+                    } else if (allowedMimeTypes.includes(file.mimeType) && Number(file.size || 0) <= 15 * 1024 * 1024 && file.capabilities?.canDownload) {
+                        const button = driveButton('Select', () => {
+                            if (selectedDriveFiles.size >= 10 || selectedDriveFiles.has(file.id)) return;
+                            const nativeDoc = file.mimeType === 'application/vnd.google-apps.document';
+                            selectedDriveFiles.set(file.id, { driveId: file.id,
+                                name: file.name + (nativeDoc ? '.pdf' : ''), type: nativeDoc ? 'application/pdf' : file.mimeType });
+                            updateDriveSelection();
+                        });
+                        button.dataset.driveFile = file.id;
+                        row.append(name, button);
+                    } else {
+                        const note = document.createElement('span');
+                        note.className = 'muted';
+                        note.textContent = Number(file.size || 0) > 15 * 1024 * 1024 ? 'Over 15 MB' : 'Unavailable for signing';
+                        row.append(name, note);
+                    }
+                    driveResults.append(row);
+                });
+                driveResults.querySelectorAll('[data-drive-file]').forEach(button => {
+                    const selected = selectedDriveFiles.has(button.dataset.driveFile);
+                    button.textContent = selected ? 'Selected' : 'Select';
+                    button.disabled = selected || selectedDriveFiles.size >= 10;
+                });
+                driveStatus.textContent = driveResults.children.length ? 'Select up to 10 documents. Google Docs are imported as PDF.' : 'No files found in this folder.';
+                driveMore.hidden = !driveNextPage;
+            } catch (error) {
+                if (version === driveRequest) driveStatus.textContent = error.message;
+            }
+        }
+
+        documentsInput.addEventListener('change', () => updateDocumentSource());
+        source.addEventListener('change', updateDocumentSource);
+        document.getElementById('browseSigningDrive').addEventListener('click', () => {
+            driveDialog.showModal();
+            loadDriveFolder(driveFolder);
         });
+        document.getElementById('signingDriveDone').addEventListener('click', () => driveDialog.close());
+        document.getElementById('signingDriveSearchButton').addEventListener('click', () => loadDriveFolder(driveFolder));
+        driveSearch.addEventListener('keydown', event => {
+            if (event.key === 'Enter') { event.preventDefault(); loadDriveFolder(driveFolder); }
+        });
+        driveMore.addEventListener('click', () => loadDriveFolder(driveFolder, driveNextPage));
+        documentsInput.form.addEventListener('submit', event => {
+            if (source.value === 'file_manager' && selectedDriveFiles.size === 0) {
+                event.preventDefault();
+                document.getElementById('driveSelectionStatus').textContent = 'Choose at least one document from File Manager.';
+                document.getElementById('browseSigningDrive').focus();
+            }
+        });
+        updateDocumentSource();
 
         let resizeTimer;
         let previousWidth = placementPanel.clientWidth;

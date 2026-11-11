@@ -223,6 +223,16 @@ class FileManagerTest extends TestCase
         Http::assertSent(fn ($request) => str_contains($request->url(), '/files?') && str_contains($request['q'], "mimeType = 'application/vnd.google-apps.folder'"));
     }
 
+    public function test_document_picker_includes_files_and_keeps_folder_search_and_pagination(): void
+    {
+        $this->fakeDrive([], [$this->item('agreement', 'application/pdf', ['name' => 'Agreement.pdf'])]);
+        $this->admin()->getJson('/admin/file-manager?picker=1&include_files=1&search=Agreement&page=page-2')
+            ->assertOk()->assertJsonPath('files.0.name', 'Agreement.pdf')->assertJsonPath('nextPageToken', 'next-page');
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/files?')
+            && ! str_contains($request['q'], 'mimeType =') && str_contains($request['q'], 'Agreement')
+            && $request['pageToken'] === 'page-2' && $request['driveId'] === 'drive-1');
+    }
+
     private function useSigningKey(): void
     {
         $options = ['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA];
