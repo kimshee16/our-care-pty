@@ -261,6 +261,13 @@ Route::post('/job-postings/{id}/apply', [App\Http\Controllers\HealthcareControll
 Route::get('/applications', [App\Http\Controllers\HealthcareController::class, 'applications'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':healthcare_worker');
 
+Route::prefix('healthcare/document-signing')->middleware(\App\Http\Middleware\CheckAccountType::class . ':healthcare_worker')->group(function () {
+    Route::get('/', [App\Http\Controllers\DocumentSigningController::class, 'index']);
+    Route::post('/{id}/sign', [App\Http\Controllers\DocumentSigningController::class, 'sign'])->whereNumber('id');
+    Route::post('/{id}/sync', [App\Http\Controllers\DocumentSigningController::class, 'sync'])->whereNumber('id');
+    Route::get('/{id}/download/{fileIndex?}', [App\Http\Controllers\DocumentSigningController::class, 'download'])->whereNumber(['id', 'fileIndex']);
+});
+
 Route::get('/applications/{applicationId}/download', [App\Http\Controllers\HealthcareController::class, 'downloadAttachment'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':healthcare_worker');
 
@@ -300,6 +307,7 @@ Route::post('/admin-registrations/{id}/impersonate-client', [App\Http\Controller
 Route::post('/admin/impersonation/stop', [App\Http\Controllers\AdminController::class, 'stopImpersonating']);
 
 Route::get('/document-signing/{documentSigningRequest}/return', [App\Http\Controllers\DocumentSigningController::class, 'returnFromSigning'])
+    ->whereNumber('documentSigningRequest')
     ->name('document-signing.return');
 
 Route::post('/docusign/connect', [App\Http\Controllers\DocumentSigningController::class, 'webhook'])

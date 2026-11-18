@@ -144,7 +144,7 @@ class DocumentSigningTest extends TestCase
         $response = $this->withSession([
             'user' => ['id' => $admin->id, 'accounttype' => 'admin'],
         ])->post('/admin/document-signing', [
-            'client_id' => $client->id,
+            'signatory' => 'client:' . $client->id,
             'title' => 'Service Agreement',
             'message' => 'Please review and sign.',
             'documents' => [
@@ -166,6 +166,113 @@ class DocumentSigningTest extends TestCase
         $this->assertNotNull($signingRequest->reference_code);
         $this->assertStringStartsWith('DSR-', $signingRequest->reference_code);
         $this->assertCount(1, $signingRequest->documentFiles());
+    }
+
+    public function test_healthcare_worker_can_sign_and_download_their_assigned_document(): void
+    {
+        $this->configureDocuSign();
+        Storage::fake('local');
+        Http::preventStrayRequests();
+        $signingUrl = 'https://demo.docusign.net/signing/worker-envelope';
+        $signedPdf = "%PDF-1.7\nSigned worker agreement\n%%EOF";
+        Http::fake([
+            'account-d.docusign.com/oauth/token' => Http::response(['access_token' => 'test-token']),
+            '*/envelopes' => Http::response(['envelopeId' => 'worker-envelope', 'status' => 'sent']),
+            '*/envelopes/worker-envelope/views/recipient' => Http::response(['url' => $signingUrl]),
+            '*/envelopes/worker-envelope' => Http::sequence()
+                ->push(['status' => 'sent'])
+                ->push(['status' => 'completed']),
+            '*/envelopes/worker-envelope/documents/combined*' => Http::response($signedPdf, 200, ['Content-Type' => 'application/pdf']),
+        ]);
+        $admin = User::factory()->create(['accounttype' => 'admin']);
+        $worker = User::factory()->create(['accounttype' => 'healthcare_worker', 'fullname' => 'Assigned Worker']);
+        $adminPath = '/admin/document-signing';
+        $workerPath = '/healthcare/document-signing';
+
+        $this->withSession(['user' => ['id' => $admin->id, 'accounttype' => 'admin']]);
+        $this->get($adminPath)->assertOk()
+            ->assertSee('label="Healthcare Workers"', false)
+            ->assertSee('value="healthcare_worker:' . $worker->id . '"', false)
+            ->assertSee($worker->email);
+        $this->post($adminPath, [
+            'signatory' => 'healthcare_worker:' . $worker->id,
+            'title' => 'Worker Agreement',
+            'documents' => [UploadedFile::fake()->create('worker-agreement.pdf', 12, 'application/pdf')],
+        ])->assertRedirect($adminPath)->assertSessionHasNoErrors();
+
+        $document = DocumentSigningRequest::sole();
+        $this->assertNull($document->client_id);
+        $this->assertEquals($worker->id, $document->healthcare_worker_user_id);
+        $this->get($adminPath)->assertOk()->assertSee('Worker Agreement')->assertSee('Assigned Worker');
+        $this->post($adminPath . '/' . $document->id . '/send')->assertRedirect($adminPath);
+        $identity = 'healthcare-worker-' . $worker->id;
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/envelopes')
+            && data_get($request->data(), 'recipients.signers.0.email') === $worker->email
+            && data_get($request->data(), 'recipients.signers.0.name') === $worker->fullname
+            && data_get($request->data(), 'recipients.signers.0.clientUserId') === $identity);
+        $this->assertSame($identity, $document->fresh()->docusign_client_user_id);
+
+        $this->withSession(['user' => ['id' => $worker->id, 'accounttype' => 'healthcare_worker']]);
+        $this->get($workerPath)->assertOk()
+            ->assertSee('Worker Agreement')
+            ->assertSee($workerPath . '/' . $document->id . '/sign')
+            ->assertDontSee('Create Signing Request');
+        $this->get($workerPath . '/' . $document->id . '/download/0')->assertDownload('worker-agreement.pdf');
+        $this->post($workerPath . '/' . $document->id . '/sign')->assertRedirect($signingUrl);
+        $returnUrl = route('document-signing.return', $document);
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/views/recipient')
+            && $request['email'] === $worker->email
+            && $request['userName'] === $worker->fullname
+            && $request['clientUserId'] === $identity
+            && $request['returnUrl'] === $returnUrl);
+        $this->get($returnUrl)->assertRedirect($workerPath);
+        $this->assertSame(DocumentSigningRequest::STATUS_COMPLETED, $document->fresh()->status);
+        $this->get($workerPath . '/' . $document->id . '/download')->assertOk()->assertStreamedContent($signedPdf);
+    }
+
+    public function test_signatory_must_resolve_to_a_single_client_or_healthcare_worker(): void
+    {
+        Storage::fake('local');
+        $admin = User::factory()->create(['accounttype' => 'admin']);
+        $worker = User::factory()->create(['accounttype' => 'healthcare_worker']);
+        $client = $this->createClient('client@example.com');
+        $this->withSession(['user' => ['id' => $admin->id, 'accounttype' => 'admin']]);
+
+        $this->post('/admin/document-signing', ['signatory' => 'healthcare_worker:' . $admin->id])
+            ->assertSessionHasErrors('healthcare_worker_user_id');
+        $this->post('/admin/document-signing', ['signatory' => 'unknown:' . $worker->id])
+            ->assertSessionHasErrors('client_id');
+        $this->post('/admin/document-signing', ['client_id' => $client->id, 'healthcare_worker_user_id' => $worker->id])
+            ->assertSessionHasErrors('client_id');
+        $this->assertDatabaseCount('document_signing_requests', 0);
+    }
+
+    public function test_worker_requests_are_private_to_the_assigned_worker(): void
+    {
+        $this->configureDocuSign();
+        Http::preventStrayRequests();
+        Http::fake();
+        $worker = User::factory()->create(['accounttype' => 'healthcare_worker']);
+        $otherWorker = User::factory()->create(['accounttype' => 'healthcare_worker']);
+        $clientUser = User::factory()->create(['accounttype' => 'client', 'record_id' => null]);
+        $document = DocumentSigningRequest::create([
+            'healthcare_worker_user_id' => $worker->id,
+            'title' => 'Private worker agreement',
+            'docusign_envelope_id' => 'private-worker-envelope',
+            'status' => DocumentSigningRequest::STATUS_SENT,
+        ]);
+
+        foreach ([$otherWorker, $clientUser] as $user) {
+            $path = $user->accounttype === 'client' ? '/client/document-signing' : '/healthcare/document-signing';
+            $this->withSession(['user' => ['id' => $user->id, 'accounttype' => $user->accounttype]]);
+            $this->get($path)->assertOk()->assertDontSee($document->title);
+            $this->post($path . '/' . $document->id . '/sign')->assertNotFound();
+            $this->post($path . '/' . $document->id . '/sync')->assertNotFound();
+            $this->get($path . '/' . $document->id . '/download')->assertNotFound();
+            $this->get(route('document-signing.return', $document))->assertNotFound();
+        }
+
+        Http::assertNothingSent();
     }
 
     public function test_client_only_sees_their_own_document_signing_requests(): void

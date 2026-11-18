@@ -484,16 +484,26 @@
                     </div>
 
                     <div class="signing-field">
-                        <label for="client_id">Client</label>
-                        <select id="client_id" name="client_id" required>
-                            <option value="">Select a client</option>
-                            @foreach($clients as $client)
-                                <option value="{{ $client->id }}" @selected(old('client_id') == $client->id)>
-                                    {{ trim($client->first_name . ' ' . $client->last_name) }} - {{ $client->email }}
-                                </option>
-                            @endforeach
+                        <label for="signatory">Signatory</label>
+                        <select id="signatory" name="signatory" required>
+                            <option value="">Select a signatory</option>
+                            <optgroup label="Clients">
+                                @foreach($clients as $client)
+                                    <option value="client:{{ $client->id }}" @selected(old('signatory') === 'client:' . $client->id)>
+                                        {{ trim($client->first_name . ' ' . $client->last_name) }} - {{ $client->email }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                            <optgroup label="Healthcare Workers">
+                                @foreach($healthcareWorkers as $worker)
+                                    <option value="healthcare_worker:{{ $worker->id }}" @selected(old('signatory') === 'healthcare_worker:' . $worker->id)>
+                                        {{ $worker->fullname }} - {{ $worker->email }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
                         </select>
                         @error('client_id') <span class="field-error">{{ $message }}</span> @enderror
+                        @error('healthcare_worker_user_id') <span class="field-error">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="signing-field message-field">
@@ -564,7 +574,7 @@
                     <tr>
                         <th>Request ID</th>
                         @if($isAdmin)
-                            <th>Client</th>
+                            <th>Signatory</th>
                         @endif
                         <th>Document</th>
                         <th>Status</th>
@@ -579,8 +589,9 @@
                             <td><strong>{{ $document->displayReference() }}</strong></td>
                             @if($isAdmin)
                                 <td>
-                                    <strong>{{ trim(($document->client->first_name ?? '') . ' ' . ($document->client->last_name ?? '')) ?: 'Client #' . $document->client_id }}</strong><br>
-                                    <span class="muted">{{ $document->client->email ?? 'No email' }}</span>
+                                    <strong>{{ $document->signatoryName() }}</strong><br>
+                                    <span class="muted">{{ $document->healthcare_worker_user_id !== null ? 'Healthcare Worker' : 'Client' }}</span><br>
+                                    <span class="muted">{{ $document->signatory()?->email ?? 'No email' }}</span>
                                 </td>
                             @endif
                             <td>
@@ -605,12 +616,12 @@
                             <td>
                                 <div class="signing-actions">
                                     @if($document->isComplete())
-                                        <a class="signing-btn neutral" href="{{ url(($isAdmin ? '/admin' : '/client') . '/document-signing/' . $document->id . '/download') }}" title="Download signed document" aria-label="Download signed document">
+                                        <a class="signing-btn neutral" href="{{ url($signingPath . '/' . $document->id . '/download') }}" title="Download signed document" aria-label="Download signed document">
                                             <i class="fas fa-download"></i>
                                         </a>
                                     @else
                                         @foreach($document->documentFiles() as $fileIndex => $file)
-                                            <a class="signing-btn neutral" href="{{ url(($isAdmin ? '/admin' : '/client') . '/document-signing/' . $document->id . '/download/' . $fileIndex) }}" title="Download {{ $file['original_name'] ?? 'source document' }}">
+                                            <a class="signing-btn neutral" href="{{ url($signingPath . '/' . $document->id . '/download/' . $fileIndex) }}" title="Download {{ $file['original_name'] ?? 'source document' }}">
                                                 <i class="fas fa-download"></i>
                                             </a>
                                         @endforeach
@@ -636,7 +647,7 @@
                                         @endif
                                     @else
                                         @if(in_array($document->status, ['sent', 'signing_ready'], true))
-                                            <form method="POST" action="{{ url('/client/document-signing/' . $document->id . '/sign') }}">
+                                            <form method="POST" action="{{ url($signingPath . '/' . $document->id . '/sign') }}">
                                                 @csrf
                                                 <button type="submit" class="signing-btn primary">
                                                     <i class="fas fa-file-signature"></i>

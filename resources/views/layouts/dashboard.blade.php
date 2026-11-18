@@ -599,6 +599,10 @@
                             <i class="fas fa-file-alt"></i>
                             Applications
                         </a>
+                        <a href="{{ url('/healthcare/document-signing') }}" class="nav-item {{ request()->is('healthcare/document-signing', 'healthcare/document-signing/*') ? 'active' : '' }}">
+                            <i class="fas fa-file-signature"></i>
+                            Document Signing
+                        </a>
                     </div>
                 @elseif($accountType === 'admin')
                     <div class="nav-section">

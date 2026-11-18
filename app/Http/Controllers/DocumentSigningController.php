@@ -8,10 +8,12 @@ use App\Models\User;
 use App\Exceptions\GoogleDriveException;
 use App\Services\DocuSignService;
 use App\Services\SigningDocumentImporter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 class DocumentSigningController extends Controller
@@ -22,14 +24,15 @@ class DocumentSigningController extends Controller
 
     public function index()
     {
-        $user = $this->getUserModel();
+        $user = $this->signingUser();
 
-        if (! $user || ! in_array($user->accounttype, ['admin', 'client'], true)) {
+        if (! $user) {
             return redirect('/login');
         }
 
-        $documents = DocumentSigningRequest::with(['client', 'creator'])
-            ->when($user->accounttype === 'client', fn ($query) => $query->where('client_id', $user->record_id))
+        $isAdmin = $user->accounttype === 'admin';
+        $documents = $this->visibleRequests($user)
+            ->with(['client', 'healthcareWorkerUser'])
             ->latest()
             ->get();
 
@@ -53,14 +56,14 @@ class DocumentSigningController extends Controller
             }
         }
 
-        $clients = $user->accounttype === 'admin'
-            ? Client::orderBy('first_name')->orderBy('last_name')->get()
-            : collect();
-
         return view('document-signing.index', [
             'documents' => $documents,
-            'clients' => $clients,
-            'isAdmin' => $user->accounttype === 'admin',
+            'clients' => $isAdmin ? Client::orderBy('first_name')->orderBy('last_name')->get() : collect(),
+            'healthcareWorkers' => $isAdmin
+                ? User::where('accounttype', 'healthcare_worker')->orderBy('fullname')->get(['id', 'fullname', 'email'])
+                : collect(),
+            'isAdmin' => $isAdmin,
+            'signingPath' => $this->documentSigningPath($user),
             'syncFailed' => $syncFailed,
             'configMissing' => $this->docuSign->configurationErrors(),
             'docusignConsentUrl' => session('docusign_consent_url'),
@@ -73,8 +76,18 @@ class DocumentSigningController extends Controller
         $user = $this->requireAdmin();
         $request->mergeIfMissing(['document_source' => 'manual']);
 
+        if ($request->has('signatory')) {
+            $signatory = $request->input('signatory');
+            [$type, $id] = array_pad(explode(':', is_string($signatory) ? $signatory : '', 2), 2, null);
+            $request->merge([
+                'client_id' => $type === 'client' ? $id : null,
+                'healthcare_worker_user_id' => $type === 'healthcare_worker' ? $id : null,
+            ]);
+        }
+
         $validated = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
+            'client_id' => ['bail', 'nullable', 'required_without:healthcare_worker_user_id', 'prohibits:healthcare_worker_user_id', 'integer', 'exists:clients,id'],
+            'healthcare_worker_user_id' => ['bail', 'nullable', 'integer', Rule::exists('users', 'id')->where('accounttype', 'healthcare_worker')],
             'title' => ['required', 'string', 'max:255'],
             'message' => ['nullable', 'string', 'max:2000'],
             'document_source' => ['required', 'in:manual,file_manager'],
@@ -87,7 +100,13 @@ class DocumentSigningController extends Controller
             'signature_positions.*.x' => ['nullable', 'integer', 'min:0'],
             'signature_positions.*.y' => ['nullable', 'integer', 'min:0'],
         ], [
-            'documents.required' => 'Please upload at least one document that the client needs to sign.',
+            'client_id.required_without' => 'Please select a signatory.',
+            'client_id.prohibits' => 'Please select only one signatory.',
+            'client_id.integer' => 'Please select a valid client.',
+            'client_id.exists' => 'Please select a valid client.',
+            'healthcare_worker_user_id.integer' => 'Please select a valid healthcare worker.',
+            'healthcare_worker_user_id.exists' => 'Please select a valid healthcare worker.',
+            'documents.required' => 'Please upload at least one document for the signatory.',
             'documents.*.mimes' => 'Each document must be a PDF, DOC, or DOCX file.',
             'documents.*.max' => 'Each document must be 15 MB or smaller.',
             'drive_files.required' => 'Please choose at least one document from File Manager.',
@@ -97,6 +116,11 @@ class DocumentSigningController extends Controller
         $documentFiles = [];
         $signaturePositions = $validated['signature_positions'] ?? [];
         $temporaryFiles = [];
+        $clientId = $validated['client_id'] ?? null;
+        $healthcareWorkerUserId = $validated['healthcare_worker_user_id'] ?? null;
+        $directory = $healthcareWorkerUserId !== null
+            ? 'document-signing/healthcare-worker-' . $healthcareWorkerUserId
+            : 'document-signing/' . $clientId;
 
         try {
             $files = $request->file('documents', []);
@@ -110,7 +134,7 @@ class DocumentSigningController extends Controller
 
             foreach ($files as $index => $file) {
                 $position = $signaturePositions[$index] ?? [];
-                $path = $file->store('document-signing/' . $validated['client_id'], 'local');
+                $path = $file->store($directory, 'local');
                 if (! $path) {
                     throw new \RuntimeException('Unable to store the signing document.');
                 }
@@ -128,7 +152,8 @@ class DocumentSigningController extends Controller
             $firstDocument = $documentFiles[0] ?? null;
 
             DocumentSigningRequest::create([
-                'client_id' => $validated['client_id'],
+                'client_id' => $clientId,
+                'healthcare_worker_user_id' => $healthcareWorkerUserId,
                 'created_by' => $user->id,
                 'title' => $validated['title'],
                 'message' => $validated['message'] ?? null,
@@ -158,7 +183,7 @@ class DocumentSigningController extends Controller
     public function send(int $id)
     {
         $this->requireAdmin();
-        $signingRequest = DocumentSigningRequest::with('client')->findOrFail($id);
+        $signingRequest = DocumentSigningRequest::findOrFail($id);
 
         if (! $signingRequest->canBeSent()) {
             return redirect('/admin/document-signing')->with('error', 'Only draft or failed documents can be sent.');
@@ -183,16 +208,19 @@ class DocumentSigningController extends Controller
             return $redirect;
         }
 
-        return redirect('/admin/document-signing')->with('success', 'Document sent to DocuSign for client signature.');
+        return redirect('/admin/document-signing')->with('success', 'Document sent to DocuSign for signature.');
     }
 
     public function sign(int $id)
     {
-        $user = $this->requireClient();
-        $signingRequest = $this->clientOwnedRequest($id, $user);
+        $user = $this->signingUser();
+        abort_if(! $user || $user->accounttype === 'admin', 403);
+
+        $signingRequest = $this->visibleRequests($user)->findOrFail($id);
+        $signingPath = $this->documentSigningPath($user);
 
         if ($signingRequest->isComplete()) {
-            return redirect('/client/document-signing')->with('success', 'This document is already signed.');
+            return redirect($signingPath)->with('success', 'This document is already signed.');
         }
 
         try {
@@ -203,7 +231,7 @@ class DocumentSigningController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
-            return redirect('/client/document-signing')->with('error', $exception->getMessage());
+            return redirect($signingPath)->with('error', $exception->getMessage());
         }
 
         return redirect()->away($url);
@@ -211,15 +239,13 @@ class DocumentSigningController extends Controller
 
     public function sync(int $id)
     {
-        $user = $this->getUserModel();
+        $user = $this->signingUser();
 
-        if (! $user || ! in_array($user->accounttype, ['admin', 'client'], true)) {
+        if (! $user) {
             return redirect('/login');
         }
 
-        $signingRequest = $user->accounttype === 'admin'
-            ? DocumentSigningRequest::findOrFail($id)
-            : $this->clientOwnedRequest($id, $user);
+        $signingRequest = $this->visibleRequests($user)->findOrFail($id);
 
         try {
             $this->docuSign->syncEnvelope($signingRequest);
@@ -258,22 +284,26 @@ class DocumentSigningController extends Controller
         return redirect('/admin/document-signing')->with('success', 'Document signing request voided.');
     }
 
-    public function returnFromSigning(DocumentSigningRequest $documentSigningRequest)
+    public function returnFromSigning(int $documentSigningRequest)
     {
-        $user = $this->getUserModel();
+        $user = $this->signingUser();
+        if (! $user) {
+            return redirect('/login');
+        }
 
-        if ($documentSigningRequest->docusign_envelope_id && $this->docuSign->isConfigured()) {
+        $signingRequest = $this->visibleRequests($user)->findOrFail($documentSigningRequest);
+        if ($signingRequest->docusign_envelope_id && $this->docuSign->isConfigured()) {
             try {
-                $this->docuSign->syncEnvelope($documentSigningRequest);
+                $this->docuSign->syncEnvelope($signingRequest);
             } catch (Throwable $exception) {
                 Log::warning('DocuSign return sync failed.', [
-                    'document_signing_request_id' => $documentSigningRequest->id,
+                    'document_signing_request_id' => $signingRequest->id,
                     'error' => $exception->getMessage(),
                 ]);
             }
         }
 
-        return redirect($user ? $this->documentSigningPath($user) : '/login')
+        return redirect($this->documentSigningPath($user))
             ->with('success', 'Returned from DocuSign. The document status has been refreshed where possible.');
     }
 
@@ -305,15 +335,13 @@ class DocumentSigningController extends Controller
 
     public function download(int $id, ?int $fileIndex = null)
     {
-        $user = $this->getUserModel();
+        $user = $this->signingUser();
 
-        if (! $user || ! in_array($user->accounttype, ['admin', 'client'], true)) {
+        if (! $user) {
             return redirect('/login');
         }
 
-        $signingRequest = $user->accounttype === 'admin'
-            ? DocumentSigningRequest::findOrFail($id)
-            : $this->clientOwnedRequest($id, $user);
+        $signingRequest = $this->visibleRequests($user)->findOrFail($id);
 
         if ($signingRequest->isComplete()) {
             try {
@@ -381,12 +409,13 @@ class DocumentSigningController extends Controller
         ];
     }
 
-    protected function clientOwnedRequest(int $id, User $user): DocumentSigningRequest
+    protected function visibleRequests(User $user): Builder
     {
-        return DocumentSigningRequest::with('client')
-            ->where('id', $id)
-            ->where('client_id', $user->record_id)
-            ->firstOrFail();
+        return match ($user->accounttype) {
+            'admin' => DocumentSigningRequest::query(),
+            'client' => DocumentSigningRequest::whereNotNull('client_id')->where('client_id', $user->record_id),
+            'healthcare_worker' => DocumentSigningRequest::where('healthcare_worker_user_id', $user->id),
+        };
     }
 
     protected function requireAdmin(): User
@@ -400,15 +429,11 @@ class DocumentSigningController extends Controller
         return $user;
     }
 
-    protected function requireClient(): User
+    protected function signingUser(): ?User
     {
         $user = $this->getUserModel();
 
-        if (! $user || $user->accounttype !== 'client') {
-            abort(403);
-        }
-
-        return $user;
+        return $user && in_array($user->accounttype, ['admin', 'client', 'healthcare_worker'], true) ? $user : null;
     }
 
     protected function getUserModel(): ?User
@@ -420,6 +445,10 @@ class DocumentSigningController extends Controller
 
     protected function documentSigningPath(User $user): string
     {
-        return $user->accounttype === 'admin' ? '/admin/document-signing' : '/client/document-signing';
+        return match ($user->accounttype) {
+            'admin' => '/admin/document-signing',
+            'client' => '/client/document-signing',
+            'healthcare_worker' => '/healthcare/document-signing',
+        };
     }
 }

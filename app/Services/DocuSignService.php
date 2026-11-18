@@ -70,7 +70,6 @@ class DocuSignService
     public function sendEnvelope(DocumentSigningRequest $signingRequest): DocumentSigningRequest
     {
         $this->ensureConfigured();
-        $signingRequest->loadMissing('client');
 
         $payload = $this->buildEnvelopePayload($signingRequest);
         $response = $this->api()
@@ -93,7 +92,6 @@ class DocuSignService
     public function createRecipientView(DocumentSigningRequest $signingRequest): string
     {
         $this->ensureConfigured();
-        $signingRequest->loadMissing('client');
 
         if (! $signingRequest->docusign_envelope_id) {
             throw new RuntimeException('This signing request has not been sent to DocuSign yet.');
@@ -103,8 +101,8 @@ class DocuSignService
             ->post($this->accountPath("/envelopes/{$signingRequest->docusign_envelope_id}/views/recipient"), [
                 'returnUrl' => route('document-signing.return', $signingRequest),
                 'authenticationMethod' => 'none',
-                'email' => $signingRequest->client->email,
-                'userName' => $this->recipientName($signingRequest),
+                'email' => $this->recipientEmail($signingRequest),
+                'userName' => $signingRequest->signatoryName(),
                 'recipientId' => $signingRequest->docusign_recipient_id ?: '1',
                 'clientUserId' => $this->clientUserId($signingRequest),
             ])
@@ -251,8 +249,8 @@ class DocuSignService
         if ($signingRequest->docusign_template_id) {
             $templateRole = [
                 'roleName' => config('services.docusign.template_role', 'Client'),
-                'name' => $this->recipientName($signingRequest),
-                'email' => $signingRequest->client->email,
+                'name' => $signingRequest->signatoryName(),
+                'email' => $this->recipientEmail($signingRequest),
                 'recipientId' => $signingRequest->docusign_recipient_id ?: '1',
                 'clientUserId' => $this->clientUserId($signingRequest),
             ];
@@ -299,8 +297,8 @@ class DocuSignService
             ->all();
 
         $signer = [
-            'email' => $signingRequest->client->email,
-            'name' => $this->recipientName($signingRequest),
+            'email' => $this->recipientEmail($signingRequest),
+            'name' => $signingRequest->signatoryName(),
             'recipientId' => $signingRequest->docusign_recipient_id ?: '1',
             'routingOrder' => '1',
             'clientUserId' => $this->clientUserId($signingRequest),
@@ -395,17 +393,20 @@ class DocuSignService
             ?: (config('services.docusign.demo') ? 'account-d.docusign.com' : 'account.docusign.com');
     }
 
-    protected function recipientName(DocumentSigningRequest $signingRequest): string
+    protected function recipientEmail(DocumentSigningRequest $signingRequest): string
     {
-        $client = $signingRequest->client;
-        $name = trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? ''));
+        $email = $signingRequest->signatory()?->email;
 
-        return $name !== '' ? $name : $client->email;
+        return $email ?: throw new RuntimeException('The signatory needs an email address before the document can be signed.');
     }
 
     protected function clientUserId(DocumentSigningRequest $signingRequest): string
     {
-        return (string) ($signingRequest->docusign_client_user_id ?: 'client-' . $signingRequest->client_id);
+        return $signingRequest->docusign_client_user_id ?: (
+            $signingRequest->healthcare_worker_user_id !== null
+                ? 'healthcare-worker-' . $signingRequest->healthcare_worker_user_id
+                : 'client-' . $signingRequest->client_id
+        );
     }
 
     protected function shouldSendEmailToEmbeddedSigner(): bool

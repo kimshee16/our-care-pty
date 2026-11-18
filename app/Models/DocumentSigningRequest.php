@@ -20,6 +20,7 @@ class DocumentSigningRequest extends Model
     protected $fillable = [
         'reference_code',
         'client_id',
+        'healthcare_worker_user_id',
         'created_by',
         'title',
         'message',
@@ -77,6 +78,26 @@ class DocumentSigningRequest extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function healthcareWorkerUser()
+    {
+        return $this->belongsTo(User::class, 'healthcare_worker_user_id');
+    }
+
+    public function signatory(): Client|User|null
+    {
+        return $this->healthcare_worker_user_id !== null ? $this->healthcareWorkerUser : $this->client;
+    }
+
+    public function signatoryName(): string
+    {
+        $signatory = $this->signatory();
+        $name = $signatory instanceof User
+            ? trim($signatory->fullname ?? '')
+            : trim(($signatory->first_name ?? '') . ' ' . ($signatory->last_name ?? ''));
+
+        return $name !== '' ? $name : ($signatory->email ?? '');
     }
 
     public function creator()
