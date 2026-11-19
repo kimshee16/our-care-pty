@@ -79,7 +79,7 @@
                                 <td>
                                     <span class="match-badge">{{ $application->match_percentage ?? 0 }}%</span>
                                 </td>
-                                <td>{{ $application->expected_salary ? '$' . number_format($application->expected_salary, 2) : 'N/A' }}</td>
+                                <td>{{ $application->expected_salary_display }}</td>
                                 <td>
                                     @if($application->interview_status == 'pending' || !$application->interview_status)
                                         <span class="status-badge status-pending">Pending</span>
@@ -995,7 +995,7 @@
                 </div>
 
                 <div class="panel-section">
-                    <div class="panel-row"><span class="panel-label">Expected Salary</span><span class="panel-value">${application.expected_salary ? '$' + parseFloat(application.expected_salary).toFixed(2) : 'N/A'}</span></div>
+                    <div class="panel-row"><span class="panel-label">Expected Salary</span><span class="panel-value" data-expected-salary></span></div>
                     <div class="panel-row"><span class="panel-label">Status</span><span class="panel-value">${statusBadge}</span></div>
                 </div>
 
@@ -1057,6 +1057,7 @@
             </div>
         `;
 
+        modalBody.querySelector('[data-expected-salary]').textContent = application.expected_salary_display;
         document.getElementById('detailsModal').classList.add('show');
     }
 

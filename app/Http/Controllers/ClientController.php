@@ -255,6 +255,12 @@ class ClientController extends Controller
 
         $applications->each(function ($application) {
             $application->match_percentage = $this->calculateMatchPercentage($application);
+
+            $salary = trim((string) $application->expected_salary);
+            $amount = filter_var($salary, FILTER_VALIDATE_FLOAT);
+            $application->expected_salary_display = $amount !== false
+                ? '$' . number_format($amount, 2)
+                : ($salary !== '' ? $salary : 'N/A');
         });
 
         return view('client-applications', compact('applications', 'jobPostings'));
