@@ -25,6 +25,10 @@ Route::get('/intake', [App\Http\Controllers\CmsController::class, 'intake'])->na
 Route::get('/intake-v2', [App\Http\Controllers\CmsController::class, 'intake']);
 Route::get('/contact', [App\Http\Controllers\CmsController::class, 'contact'])->name('contact.v2');
 Route::get('/contact-v2', [App\Http\Controllers\CmsController::class, 'contact']);
+Route::view('/inquire', 'inquire')->name('inquiry.create');
+Route::post('/inquire', [App\Http\Controllers\InquiryController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('inquiry.store');
 Route::get('/services/{service}', [App\Http\Controllers\CmsController::class, 'serviceDetail'])->name('services.detail.v2');
 Route::get('/services-v2/{service}', [App\Http\Controllers\CmsController::class, 'serviceDetail']);
 Route::get('/cms/home', [App\Http\Controllers\CmsController::class, 'home']);

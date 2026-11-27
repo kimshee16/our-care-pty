@@ -100,6 +100,7 @@
 
         .nav-links {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: flex-end;
             gap: 27px;
@@ -435,6 +436,7 @@
             <a href="{{ url($brand['updates_url'] ?? config('cms.brand.updates_url')) }}">{{ $brand['updates_label'] ?? config('cms.brand.updates_label') }}</a>
             <a href="{{ url('/onboarding-v2') }}" @if($activePage === 'onboarding') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.onboarding-v2.label', 'Onboarding') }}</a>
             <a href="{{ url('/intake-v2') }}" @if($activePage === 'intake') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.intake-v2.label', 'Intake') }}</a>
+            <a href="{{ route('inquiry.create') }}"@if($activePage === 'inquire') aria-current="page"@endif>Inquire</a>
             <a href="{{ url('/contact-v2') }}" @if($activePage === 'contact') aria-current="page" @endif>{{ \App\Support\CmsContent::get('pages.contact-v2.label', 'Contact Us') }}</a>
         </nav>
     </header>
