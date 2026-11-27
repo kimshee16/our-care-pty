@@ -606,6 +606,10 @@
                     </div>
                 @elseif($accountType === 'admin')
                     <div class="nav-section">
+                        <a href="{{ route('admin.inquiries.index') }}" class="nav-item {{ request()->routeIs('admin.inquiries.index') ? 'active' : '' }}">
+                            <i class="fas fa-envelope" aria-hidden="true"></i>
+                            Inquiries
+                        </a>
                         <a href="{{ url('/admin-registrations') }}" class="nav-item {{ request()->is('admin-registrations') ? 'active' : '' }}">
                             <i class="fas fa-user-check"></i>
                             Approval List

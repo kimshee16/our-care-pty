@@ -161,6 +161,10 @@ Route::post('/client/interviews/hire/{id}', [App\Http\Controllers\ClientControll
 Route::get('/client/interviews/{id}', [App\Http\Controllers\ClientController::class, 'interviewDetails'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin');
 
+Route::get('/admin/inquiries', [App\Http\Controllers\InquiryController::class, 'index'])
+    ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin')
+    ->name('admin.inquiries.index');
+
 // Admin access for application and interview management
 Route::get('/admin/applications', [App\Http\Controllers\ClientController::class, 'applications'])
     ->middleware(\App\Http\Middleware\CheckAccountType::class . ':admin');

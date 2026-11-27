@@ -43,10 +43,6 @@
             @else
                 <p>Interested in our support services? Tell us how we can help.</p>
 
-                @error('delivery')
-                    <p class="inquiry-error" role="alert">{{ $message }}</p>
-                @enderror
-
                 <form class="inquiry-form" method="post" action="{{ route('inquiry.store') }}">
                     @csrf
 
